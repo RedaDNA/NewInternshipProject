@@ -2,9 +2,9 @@
 
 namespace Core.Entities
 {
-    public class Rental
+    public class Rental : BaseEntity
     {
-        public Guid Id { get; set; }
+      
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public Guid CarId { get; set; }

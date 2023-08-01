@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace Core.Entities
 {
-    internal class BaseEntity
+    public class BaseEntity 
     {
+        public Guid Id { get; set; }
     }
 }

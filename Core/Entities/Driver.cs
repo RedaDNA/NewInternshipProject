@@ -1,9 +1,9 @@
 ﻿namespace Core.Entities
 { 
-    public class Driver
+    public class Driver : BaseEntity
     {
 
-        public Guid Id { get; set; }
+       
         public string Name { get; set; }
         public string Phone { get; set; }
         public string LicenseNumber { get; set; }

@@ -1,6 +1,6 @@
 ﻿using Core.Entities;
 using Core.Interfaces;
-
+using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories
@@ -8,17 +8,11 @@ namespace Infrastructure.Repositories
     public class CarRepository : ICarRepository
     {
         private readonly CarRentalContext _context;
-
-        public CarRepository(CarRentalContext context)
-        {
-            _context = context;
-        }
-
         public IEnumerable<Car> GetAll()
-            
+
         {
-            var x = _context.Cars;
-            return x;
+            return _context.Cars;
+           
         }
 
         public Car GetById(Guid id)
@@ -45,3 +39,5 @@ namespace Infrastructure.Repositories
         }
     }
 }
+    
+

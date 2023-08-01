@@ -11,6 +11,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "infrastructure", "..\infras
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "APIPart", "..\APIPart\APIPart.csproj", "{FCE5BBA5-1AF6-4BDB-8BDE-5BAAEF46EE69}"
+	ProjectSection(ProjectDependencies) = postProject
+		{05A6358F-4AA8-41E3-91FE-A81757F71FBF} = {05A6358F-4AA8-41E3-91FE-A81757F71FBF}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

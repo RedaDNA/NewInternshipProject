@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\reda\\Source\\Repos\\NewInternshipProject\\Core\\Core.csproj": {}
+    "C:\\Users\\reda\\source\\repos\\NewInternshipProject\\Core\\Core.csproj": {}
   },
   "projects": {
-    "C:\\Users\\reda\\Source\\Repos\\NewInternshipProject\\Core\\Core.csproj": {
+    "C:\\Users\\reda\\source\\repos\\NewInternshipProject\\Core\\Core.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\reda\\Source\\Repos\\NewInternshipProject\\Core\\Core.csproj",
+        "projectUniqueName": "C:\\Users\\reda\\source\\repos\\NewInternshipProject\\Core\\Core.csproj",
         "projectName": "Core",
-        "projectPath": "C:\\Users\\reda\\Source\\Repos\\NewInternshipProject\\Core\\Core.csproj",
+        "projectPath": "C:\\Users\\reda\\source\\repos\\NewInternshipProject\\Core\\Core.csproj",
         "packagesPath": "C:\\Users\\reda\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\reda\\Source\\Repos\\NewInternshipProject\\Core\\obj\\",
+        "outputPath": "C:\\Users\\reda\\source\\repos\\NewInternshipProject\\Core\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\reda\\AppData\\Roaming\\NuGet\\NuGet.Config",
@@ -39,6 +39,12 @@
       "frameworks": {
         "net6.0": {
           "targetAlias": "net6.0",
+          "dependencies": {
+            "Microsoft.EntityFrameworkCore.SqlServer": {
+              "target": "Package",
+              "version": "[7.0.9, )"
+            }
+          },
           "imports": [
             "net461",
             "net462",
