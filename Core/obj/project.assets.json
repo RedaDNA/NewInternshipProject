@@ -13,11 +13,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\reda\\source\\repos\\Core\\Core.csproj",
+      "projectUniqueName": "C:\\Users\\reda\\Source\\Repos\\NewInternshipProject\\Core\\Core.csproj",
       "projectName": "Core",
-      "projectPath": "C:\\Users\\reda\\source\\repos\\Core\\Core.csproj",
+      "projectPath": "C:\\Users\\reda\\Source\\Repos\\NewInternshipProject\\Core\\Core.csproj",
       "packagesPath": "C:\\Users\\reda\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\reda\\source\\repos\\Core\\obj\\",
+      "outputPath": "C:\\Users\\reda\\Source\\Repos\\NewInternshipProject\\Core\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\reda\\AppData\\Roaming\\NuGet\\NuGet.Config",
