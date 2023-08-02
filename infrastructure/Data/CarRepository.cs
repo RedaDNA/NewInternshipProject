@@ -1,42 +1,24 @@
 ﻿using Core.Entities;
 using Core.Interfaces;
+using infrastructure.Data;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories
 {
-    public class CarRepository : ICarRepository
+    public class CarRepository : GenericRepository<Car> ,ICarRepository
     {
         private readonly CarRentalContext _context;
-        public IEnumerable<Car> GetAll()
-
+        public CarRepository(CarRentalContext context) : base (context)
         {
-            return _context.Cars;
-           
-        }
+            _context = context;
 
-        public Car GetById(Guid id)
-        {
-            return _context.Cars.FirstOrDefault(c => c.Id == id);
         }
-
-        public void Add(Car car)
+        public IEnumerable<Car> GetAvailableCars()
         {
-            _context.Cars.Add(car);
-            _context.SaveChanges();
+            return _context.Cars.AsEnumerable().Where(c =>c.IsAvailable ==true);
         }
-
-        public void Update(Car car)
-        {
-            _context.Cars.Update(car);
-            _context.SaveChanges();
-        }
-
-        public void Delete(Car car)
-        {
-            _context.Cars.Remove(car);
-            _context.SaveChanges();
-        }
+     
     }
 }
     

@@ -14,6 +14,10 @@ namespace infrastructure.Data
 
     {
         private readonly CarRentalContext _context;
+        public GenericRepository(CarRentalContext context)
+        {
+            _context = context;
+        }
 
         public IEnumerable<T> GetAll()
 
@@ -43,5 +47,11 @@ namespace infrastructure.Data
             _context.Set<T>().Remove(entity);
             _context.SaveChanges();
         }
+
+            public async Task<bool> SaveChangesAsync()
+            {
+                return await _context.SaveChangesAsync().ConfigureAwait(false) > 0;
+            }
+        
     }
 }

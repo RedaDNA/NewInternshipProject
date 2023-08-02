@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Core.enums;
+using System.ComponentModel.DataAnnotations;
 
 namespace Core.Entities
 {
@@ -21,10 +22,5 @@ namespace Core.Entities
 
 
     }
-    public enum RentalStatus
-    {
-        rented,
-        returned,
-        canceled
-    }
+  
 }
