@@ -13,9 +13,8 @@ namespace Core.Interfaces
         IEnumerable<T> GetAll();
         T GetById(Guid id);
         void Add(T entity);
-        void Update(T entity);
-        void Delete(T entity);
-      /*  Task<bool> SaveChangesAsync();
-      */
+        bool Update(Guid id, T entity);
+        bool Delete(Guid id);
+    
     }
 }

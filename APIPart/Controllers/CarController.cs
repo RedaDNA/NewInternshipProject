@@ -2,7 +2,7 @@
 using Core.Entities;
 using Core.Interfaces;
 
-using infrastructure.Services;
+
 using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 
@@ -44,16 +44,16 @@ namespace APIPart.Controllers
         public IActionResult Update(Guid id, Car car)
         {
 
-            _carRepository.Update(car);
+            
 
-            return Ok();
+            return Ok(_carRepository.Update(id, car));
         }
         [HttpDelete("{id}")]
-        public IActionResult Delete(Car car)
+        public IActionResult Delete(Guid id)
         {
-            _carRepository.Delete(car);
+           
 
-            return Ok();
+            return Ok(_carRepository.Delete(id));
         }
 
 

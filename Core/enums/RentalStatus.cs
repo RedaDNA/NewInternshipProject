@@ -6,7 +6,10 @@ using System.Threading.Tasks;
 
 namespace Core.enums
 {
-    internal class RentalStatus
+    public enum RentalStatus
     {
+        rented,
+        returned,
+        canceled
     }
 }

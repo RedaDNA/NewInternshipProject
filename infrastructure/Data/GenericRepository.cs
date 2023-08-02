@@ -36,22 +36,38 @@ namespace infrastructure.Data
             _context.SaveChanges();
         }
 
-        public void Update(T entity)
+        public bool Update(Guid id,T entity)
         {
-            _context.Set<T>().Update(entity);
-            _context.SaveChanges();
-        }
-
-        public void Delete(T entity)
-        {
-            _context.Set<T>().Remove(entity);
-            _context.SaveChanges();
-        }
-
-          /*  public async Task<bool> SaveChangesAsync()
+            var oldEntity= _context.Set<T>().FirstOrDefault(c => c.Id == id);
+            if (oldEntity == null)
             {
-                return await _context.SaveChangesAsync().ConfigureAwait(false) > 0;
+                return false;
             }
-        */
+          else
+            {
+                oldEntity = entity;
+                _context.Update(oldEntity);
+                _context.SaveChanges();
+                return true;
+            }
+        }
+
+        public bool Delete(Guid id)
+        {
+            var toRemoveEntity = _context.Set<T>().FirstOrDefault(c => c.Id == id);
+            if (toRemoveEntity == null)
+            {
+                return false;
+            }
+            else
+            {
+                _context.Remove(toRemoveEntity);
+                _context.SaveChanges();
+                return true;
+            }
+          
+        }
+
+       
     }
 }
