@@ -1,6 +1,8 @@
 ﻿using Core.Entities;
 using Core.Interfaces;
 using Infrastructure.Data;
+using Infrastructure.Models;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -65,9 +67,20 @@ namespace infrastructure.Data
                 _context.SaveChanges();
                 return true;
             }
-          
+        }
+        /* public async Task<PagingModel<Car>> GetUserData(PagingModel<Car> inputData) { 
+
+
+         }*/
+        public IQueryable<T>? GetUserData(T entity)
+        {
+
+           IQueryable<T>? query = _context.Set<T>().AsQueryable();
+            return query;
+
         }
 
-       
+
+
     }
 }

@@ -1,4 +1,5 @@
 ﻿using APIPart.DTOs;
+using APIPart.Models;
 using Core.Entities;
 using Core.Interfaces;
 
@@ -15,9 +16,16 @@ namespace APIPart.Controllers
         private IGenericRepository<Car> _carRepository;
 
 
+
+
         public CarController(IGenericRepository<Car> carRepository) {
             _carRepository = carRepository;
 
+        }
+        [HttpGet]
+        public async Task<PagingModel<UserData>> GetUserRecords(**PagingModel<UserData> userInput**)
+        {
+            return await _userService.GetUserData(userInput);
         }
 
         [HttpGet]

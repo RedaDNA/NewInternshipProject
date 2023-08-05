@@ -1,4 +1,6 @@
 ﻿using Core.Entities;
+using APIPart.Modles;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,6 +17,6 @@ namespace Core.Interfaces
         void Add(T entity);
         bool Update(Guid id, T entity);
         bool Delete(Guid id);
-    
+        public Queryable GetUserData(T entity, PagingModel<UserData> inputData);
     }
 }
