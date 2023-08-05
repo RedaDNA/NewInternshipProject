@@ -1,5 +1,6 @@
 ﻿using Core.Entities;
 using Core.Interfaces;
+using Core.Models;
 using infrastructure.Data;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -18,7 +19,8 @@ namespace Infrastructure.Repositories
         {
             return _context.Cars.AsEnumerable().Where(c =>c.IsAvailable ==true);
         }
-     
+
+       
     }
 }
     

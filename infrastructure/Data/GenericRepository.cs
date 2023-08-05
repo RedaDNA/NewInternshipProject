@@ -1,5 +1,6 @@
 ﻿using Core.Entities;
 using Core.Interfaces;
+using Core.Models;
 using Infrastructure.Data;
 using System;
 using System.Collections.Generic;
@@ -24,7 +25,17 @@ namespace infrastructure.Data
         {       
                 return _context.Set<T>().ToList();
         }
+        
+     public   IEnumerable<T> GetCars(Parameters parameters)
+        {
 
+            return _context.Set<T>()
+            .OrderBy(on => on.Id)
+            .Skip((parameters.PageNumber - 1) * parameters.PageSize)
+            .Take(parameters.PageSize)
+            .ToList();
+
+        }
         public T GetById(Guid id)
         {
             return _context.Set<T>().FirstOrDefault(c => c.Id == id);

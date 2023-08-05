@@ -1,8 +1,7 @@
 ﻿using APIPart.DTOs;
 using Core.Entities;
 using Core.Interfaces;
-
-
+using Core.Models;
 using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,13 +12,41 @@ namespace APIPart.Controllers
     public class CarController : Controller
     {
         private IGenericRepository<Car> _carRepository;
-
+        
 
         public CarController(IGenericRepository<Car> carRepository) {
             _carRepository = carRepository;
 
         }
+        [HttpGet]
+        public IActionResult GetOwners([FromQuery] Parameters parameters)
+        {
+            //here is my question, in the referance they used .Owners
+            var cars = _carRepository.Cars.GetCars(parameters);
 
+            var metadata = new
+            {
+                cars.TotalCount,
+                cars.PageSize,
+                cars.CurrentPage,
+                cars.TotalPages,
+                cars.HasNext,
+                cars.HasPrevious
+            };
+
+           // Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(metadata));
+
+        
+
+            return Ok(cars);
+        }
+        [HttpGet]
+        public IActionResult GetCars([FromQuery] Parameters parameters)
+        {
+            var cars = _carRepository.GetCars(parameters);
+
+            return Ok(cars);
+        }
         [HttpGet]
         public IActionResult GetAll()
         { 

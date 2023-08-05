@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "plp/dc0j88ETOqLjqOHQheAGM3wFXQzpsqMQPq45p9T5kOmZQAuOhBr+gJjHW3aWJdoGoAmB/lM18n82BXWFew==",
+  "dgSpecHash": "xIUzXC07nJJytdyhdohLhKL8Zqa/rOvVV6ASPPAaYT8V9PitI7Hi3VyHXar+5A7d6E/YWrpZKVWhbvgu+JnIhw==",
   "success": true,
   "projectFilePath": "C:\\Users\\reda\\source\\repos\\NewInternshipProject\\APIPart\\APIPart.csproj",
   "expectedPackageFiles": [
@@ -39,6 +39,7 @@
     "C:\\Users\\reda\\.nuget\\packages\\microsoft.sqlserver.server\\1.0.0\\microsoft.sqlserver.server.1.0.0.nupkg.sha512",
     "C:\\Users\\reda\\.nuget\\packages\\microsoft.win32.registry\\5.0.0\\microsoft.win32.registry.5.0.0.nupkg.sha512",
     "C:\\Users\\reda\\.nuget\\packages\\microsoft.win32.systemevents\\5.0.0\\microsoft.win32.systemevents.5.0.0.nupkg.sha512",
+    "C:\\Users\\reda\\.nuget\\packages\\newtonsoft.json\\13.0.3\\newtonsoft.json.13.0.3.nupkg.sha512",
     "C:\\Users\\reda\\.nuget\\packages\\swashbuckle.aspnetcore\\6.2.3\\swashbuckle.aspnetcore.6.2.3.nupkg.sha512",
     "C:\\Users\\reda\\.nuget\\packages\\swashbuckle.aspnetcore.swagger\\6.2.3\\swashbuckle.aspnetcore.swagger.6.2.3.nupkg.sha512",
     "C:\\Users\\reda\\.nuget\\packages\\swashbuckle.aspnetcore.swaggergen\\6.2.3\\swashbuckle.aspnetcore.swaggergen.6.2.3.nupkg.sha512",
