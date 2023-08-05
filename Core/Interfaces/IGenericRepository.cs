@@ -17,5 +17,6 @@ namespace Core.Interfaces
         bool Delete(Guid id);
 
         IEnumerable<T> GetCars(Parameters parameters);
+        IEnumerable<Car> GetAllCars();
     }
 }

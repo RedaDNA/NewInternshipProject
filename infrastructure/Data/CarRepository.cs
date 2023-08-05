@@ -19,8 +19,12 @@ namespace Infrastructure.Repositories
         {
             return _context.Cars.AsEnumerable().Where(c =>c.IsAvailable ==true);
         }
+        public IEnumerable<Car> GetAllCars()
 
-       
+        {
+            return GetAll();
+        }
+
     }
 }
     

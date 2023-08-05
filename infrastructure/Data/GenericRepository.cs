@@ -25,8 +25,13 @@ namespace infrastructure.Data
         {       
                 return _context.Set<T>().ToList();
         }
-        
-     public   IEnumerable<T> GetCars(Parameters parameters)
+        public PagedList<T> GetCarsPages(Parameters parameters)
+        {
+            return PagedList<T>.ToPagedList(_context.Set<T>().OrderBy(on => on.Id),
+                parameters.PageNumber,
+                parameters.PageSize);
+        }
+        public   IEnumerable<T> GetCars(Parameters parameters)
         {
 
             return _context.Set<T>()
