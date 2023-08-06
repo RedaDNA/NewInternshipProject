@@ -19,34 +19,19 @@ namespace APIPart.Controllers
 
         }
         [HttpGet]
-        public IActionResult GetOwners([FromQuery] Parameters parameters)
+        public CarPaginationDto GetOwners([FromQuery] Parameters parameters)
         {
             //here is my question, in the referance they used .Owners
-            var cars = _carRepository.GetCars(parameters);
+            var query = _carRepository.GetQueryable();
+            var count = query.Count();
+            query = query.Skip(parameters.PageNumber).Take(parameters.PageSize);
+            var cars =query.ToList();
 
-            var metadata = new
-            {
-                cars.TotalCount,
-                cars.PageSize,
-                cars.CurrentPage,
-                cars.TotalPages,
-                cars.HasNext,
-                cars.HasPrevious
-            };
+            CarPaginationDto carPaginationDto= new CarPaginationDto();
 
-           // Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(metadata));
-
-        
-
-            return Ok(cars);
+            return carPaginationDto;
         }
-        [HttpGet]
-        public IActionResult GetCars([FromQuery] Parameters parameters)
-        {
-            var cars = _carRepository.GetCars(parameters);
-
-            return Ok(cars);
-        }
+       
         [HttpGet]
         public IActionResult GetAll()
         { 

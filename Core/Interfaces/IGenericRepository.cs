@@ -11,12 +11,12 @@ namespace Core.Interfaces
     public interface IGenericRepository<T> where T : BaseEntity
     {
         IEnumerable<T> GetAll();
+        IQueryable<T> GetQueryable();
         T GetById(Guid id);
         void Add(T entity);
         bool Update(Guid id, T entity);
         bool Delete(Guid id);
 
-        IEnumerable<T> GetCars(Parameters parameters);
-        IEnumerable<Car> GetAllCars();
+ 
     }
 }
