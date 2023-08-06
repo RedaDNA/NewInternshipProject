@@ -5,6 +5,13 @@ namespace APIPart.Profiles
 {
     public class CarProfile : Profile
     {
-        public  CarProfile() { CreateMap<Car, CarDTO>(); }
+        public CarProfile()
+        {
+            CreateMap<CarDTO, Car>();
+        CreateMap<CarPaginationDto,List<CarListDto>>().ConvertUsing<CarListDtoMapper>();
+        }
+
+
     }
+
 }

@@ -9,5 +9,7 @@
         public decimal DailyFare { get; set; }
         public bool WithDriver { get; set; }
         public Guid? DriverId { get; set; }
+
+
     }
 }

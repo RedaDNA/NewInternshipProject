@@ -2,7 +2,7 @@
 using AutoMapper;
 using Core.Entities;
 using Core.Interfaces;
-
+using Core.Models;
 
 using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
@@ -21,6 +21,23 @@ namespace APIPart.Controllers
             _mapper = mapper;
         }
 
+        [Route("GetCars")]
+
+        [HttpGet]
+        public CarPaginationDto GetCars([FromQuery] PaginationParameters parameters)
+        {
+            //here is my question, in the referance they used .Owners
+            var query = _carRepository.GetQueryable();
+            var count = query.Count();
+            query = query.Skip(parameters.PageNumber).Take(parameters.PageSize);
+            var cars = query.ToList();
+       // var carList = _mapper.Map<CarListDto>(cars);
+            //  CarPaginationDto carPaginationDto = new CarPaginationDto();
+
+            var carPaginationDto = _mapper.Map<List<CarListDto>> (cars);
+
+            return carPaginationDto;
+        }
         [HttpGet]
         public IActionResult GetList()
         { /*
