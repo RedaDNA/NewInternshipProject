@@ -15,6 +15,6 @@ namespace Core.Interfaces
         void Add(T entity);
         bool Update(Guid id, T entity);
         bool Delete(Guid id);
-    
+        IQueryable<T> GetQueryable();
     }
 }

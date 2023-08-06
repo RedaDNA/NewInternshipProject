@@ -18,7 +18,11 @@ namespace infrastructure.Data
         {
             _context = context;
         }
+        public IQueryable<T> GetQueryable()
 
+        {
+            return _context.Set<T>().AsQueryable();
+        }
         public IEnumerable<T> GetAll()
 
         {       

@@ -1,3 +1,9 @@
+using Core.Entities;
+using Core.Interfaces;
+using Infrastructure.Data;
+using Infrastructure.Repositories;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -6,6 +12,10 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddAutoMapper(typeof(Program));
+builder.Services.AddControllersWithViews();
+//builder.Services.AddScoped<Core.Interfaces.IGenericRepository<BaseEntity>, Core.Interfaces.IGenericRepository<BaseEntity>>();
+//builder.Services.AddScoped<ICarRepository, CarRepository>();
 
 var app = builder.Build();
 

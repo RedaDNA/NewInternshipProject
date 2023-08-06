@@ -1,7 +1,8 @@
 ﻿using APIPart.DTOs;
+using AutoMapper;
 using Core.Entities;
 using Core.Interfaces;
-
+using Core.Models;
 
 using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
@@ -14,46 +15,106 @@ namespace APIPart.Controllers
     {
         private IGenericRepository<Car> _carRepository;
 
-
-        public CarController(IGenericRepository<Car> carRepository) {
+        private readonly IMapper _mapper;
+        public CarController(IGenericRepository<Car> carRepository,IMapper mapper) {
             _carRepository = carRepository;
-
+            _mapper = mapper;
         }
+
+        [Route("GetCars")]
 
         [HttpGet]
-        public IActionResult GetAll()
-        { 
-        return Ok(_carRepository.GetAll());
-        
+        public CarPaginationDto GetCars([FromQuery] PaginationParameters parameters)
+        {
+            //here is my question, in the referance they used .Owners
+            var query = _carRepository.GetQueryable();
+            var count = query.Count();
+            query = query.Skip(parameters.PageNumber).Take(parameters.PageSize);
+            var cars = query.ToList();
+       // var carList = _mapper.Map<CarListDto>(cars);
+            //  CarPaginationDto carPaginationDto = new CarPaginationDto();
+
+            var carPaginationDto = _mapper.Map<CarPaginationDto> (cars);
+
+            return carPaginationDto;
+        }
+        [HttpGet]
+        public IActionResult GetList()
+        { /*
+                 var cars = _carRepository.
+                    GetAll().Select(c => new CarListDto
+                    {
+                      
+                        Number = c.Number,
+                        Type = c.Type,
+                        EngineCapacity = c.EngineCapacity,
+                        Color = c.Color,
+                        DailyFare = c.DailyFare,
+
+                        DriverId = c.DriverId
+                    });
+            return Ok(cars);
+            */
+
+            var cars = _carRepository.
+                        GetAll();
+            CarListDto carListDto = _mapper.Map<CarListDto>(cars);
+            return Ok(carListDto);
         }
         [HttpGet("{id}")]
-        public IActionResult GetById(Guid id)
+        public IActionResult Get(Guid id)
         {
             return Ok(_carRepository.GetById(id));
         }
         [HttpPost]
-        public IActionResult Create(Car car)
+        public IActionResult Create(CreateCarDto createCarDto)
         {
+            var car = new Car
+            {
+                Number = createCarDto.Number,
+                Type = createCarDto.Type,
+                EngineCapacity = createCarDto.EngineCapacity,
+                Color = createCarDto.Color,
+                DailyFare = createCarDto.DailyFare,
 
+                DriverId = createCarDto.DriverId
+            };
             _carRepository.Add(car);
-
+        
             return Ok();
         }
 
         [HttpPut("{id}")]
-        public IActionResult Update(Guid id, Car car)
+        public IActionResult Update(Guid id, UpdateCarDto updateCarDto)
         {
 
-            
+            var car = _carRepository.GetById(id);
+            if (car == null)
+            {
+                return NotFound();
+            }
+            car.Number = updateCarDto.Number;
+            car.Type = updateCarDto.Type;
+            car.EngineCapacity = updateCarDto.EngineCapacity;
+            car.Color = updateCarDto.Color;
+            car.DailyFare = updateCarDto.DailyFare;
 
-            return Ok(_carRepository.Update(id, car));
+            car.DriverId = updateCarDto.DriverId;
+            _carRepository.Update(id,car);
+            return Ok();
         }
         [HttpDelete("{id}")]
         public IActionResult Delete(Guid id)
         {
-           
+            var car = _carRepository.GetById(id);
+            if (car == null)
+            {
+                return NotFound();
+            }
+            _carRepository.Delete(id);
 
-            return Ok(_carRepository.Delete(id));
+
+            return Ok();
         }
 
 
