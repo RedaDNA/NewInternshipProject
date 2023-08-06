@@ -21,39 +21,78 @@ namespace APIPart.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetAll()
+        public IActionResult GetList()
         { 
-        return Ok(_carRepository.GetAll());
+                 var cars = _carRepository.
+                    GetAll().Select(c => new CarListDto
+                    {
+                      
+                        Number = c.Number,
+                        Type = c.Type,
+                        EngineCapacity = c.EngineCapacity,
+                        Color = c.Color,
+                        DailyFare = c.DailyFare,
+
+                        DriverId = c.DriverId
+                    });
+            return Ok(cars);
+
         
         }
         [HttpGet("{id}")]
-        public IActionResult GetById(Guid id)
+        public IActionResult Get(Guid id)
         {
             return Ok(_carRepository.GetById(id));
         }
         [HttpPost]
-        public IActionResult Create(Car car)
+        public IActionResult Create(CreateCarDto createCarDto)
         {
+            var car = new Car
+            {
+                Number = createCarDto.Number,
+                Type = createCarDto.Type,
+                EngineCapacity = createCarDto.EngineCapacity,
+                Color = createCarDto.Color,
+                DailyFare = createCarDto.DailyFare,
 
+                DriverId = createCarDto.DriverId
+            };
             _carRepository.Add(car);
-
+        
             return Ok();
         }
 
         [HttpPut("{id}")]
-        public IActionResult Update(Guid id, Car car)
+        public IActionResult Update(Guid id, UpdateCarDto updateCarDto)
         {
 
-            
+            var car = _carRepository.GetById(id);
+            if (car == null)
+            {
+                return NotFound();
+            }
+            car.Number = updateCarDto.Number;
+            car.Type = updateCarDto.Type;
+            car.EngineCapacity = updateCarDto.EngineCapacity;
+            car.Color = updateCarDto.Color;
+            car.DailyFare = updateCarDto.DailyFare;
 
-            return Ok(_carRepository.Update(id, car));
+            car.DriverId = updateCarDto.DriverId;
+            _carRepository.Update(id,car);
+            return Ok();
         }
         [HttpDelete("{id}")]
         public IActionResult Delete(Guid id)
         {
-           
+            var car = _carRepository.GetById(id);
+            if (car == null)
+            {
+                return NotFound();
+            }
+            _carRepository.Delete(id);
 
-            return Ok(_carRepository.Delete(id));
+
+            return Ok();
         }
 
 
