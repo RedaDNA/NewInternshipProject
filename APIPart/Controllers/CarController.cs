@@ -34,7 +34,7 @@ namespace APIPart.Controllers
        // var carList = _mapper.Map<CarListDto>(cars);
             //  CarPaginationDto carPaginationDto = new CarPaginationDto();
 
-            var carPaginationDto = _mapper.Map<List<CarListDto>> (cars);
+            var carPaginationDto = _mapper.Map<CarPaginationDto> (cars);
 
             return carPaginationDto;
         }

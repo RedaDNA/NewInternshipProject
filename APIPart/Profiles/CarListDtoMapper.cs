@@ -11,7 +11,10 @@ namespace APIPart.Profiles
 
         public CarPaginationDto Convert(List<CarListDto> source, CarPaginationDto destination, ResolutionContext context)
         {
-            return context.Mapper.Map<CarPaginationDto>(source);
+            CarPaginationDto carPaginationDto = new CarPaginationDto();
+            carPaginationDto.CarList = source;
+            carPaginationDto.Count = destination.Count;
+            return carPaginationDto;
         }
     }
 }

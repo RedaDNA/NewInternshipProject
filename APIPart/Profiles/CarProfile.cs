@@ -8,7 +8,7 @@ namespace APIPart.Profiles
         public CarProfile()
         {
             CreateMap<CarDTO, Car>();
-        CreateMap<CarPaginationDto,List<CarListDto>>().ConvertUsing<CarListDtoMapper>();
+            CreateMap<CarPaginationDto, List<CarListDto>>();
         }
 
 
