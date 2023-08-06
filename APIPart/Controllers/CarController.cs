@@ -1,4 +1,5 @@
 ﻿using APIPart.DTOs;
+using AutoMapper;
 using Core.Entities;
 using Core.Interfaces;
 
@@ -14,15 +15,15 @@ namespace APIPart.Controllers
     {
         private IGenericRepository<Car> _carRepository;
 
-
-        public CarController(IGenericRepository<Car> carRepository) {
+        private readonly IMapper _mapper;
+        public CarController(IGenericRepository<Car> carRepository,IMapper mapper) {
             _carRepository = carRepository;
-
+            _mapper = mapper;
         }
 
         [HttpGet]
         public IActionResult GetList()
-        { 
+        { /*
                  var cars = _carRepository.
                     GetAll().Select(c => new CarListDto
                     {
@@ -36,8 +37,12 @@ namespace APIPart.Controllers
                         DriverId = c.DriverId
                     });
             return Ok(cars);
+            */
 
-        
+            var cars = _carRepository.
+                        GetAll();
+            CarListDto carListDto = _mapper.Map<CarListDto>(cars);
+            return Ok(carListDto);
         }
         [HttpGet("{id}")]
         public IActionResult Get(Guid id)
