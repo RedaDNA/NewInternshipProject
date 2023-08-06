@@ -16,7 +16,7 @@ namespace APIPart.Controllers
         private IGenericRepository<Car> _carRepository;
 
         private readonly IMapper _mapper;
-        public CarController(IGenericRepository<Car> carRepository,IMapper mapper) {
+        public CarController(IGenericRepository<Car> carRepository, IMapper mapper) {
             _carRepository = carRepository;
             _mapper = mapper;
         }
@@ -31,15 +31,15 @@ namespace APIPart.Controllers
             var count = query.Count();
             query = query.Skip(parameters.PageNumber).Take(parameters.PageSize);
             var cars = query.ToList();
-       // var carList = _mapper.Map<CarListDto>(cars);
+            // var carList = _mapper.Map<CarListDto>(cars);
             //  CarPaginationDto carPaginationDto = new CarPaginationDto();
-
-            var carPaginationDto = _mapper.Map<CarPaginationDto> (cars);
+         var carListDto =    _mapper.Map <CarListDto>(cars);
+            var carPaginationDto = _mapper.Map<CarPaginationDto>(carListDto);
 
             return carPaginationDto;
         }
         [HttpGet]
-        public IActionResult GetList()
+        public CarListDto GetList()
         { /*
                  var cars = _carRepository.
                     GetAll().Select(c => new CarListDto
@@ -59,15 +59,18 @@ namespace APIPart.Controllers
             var cars = _carRepository.
                         GetAll();
             CarListDto carListDto = _mapper.Map<CarListDto>(cars);
-            return Ok(carListDto);
+            return carListDto;
         }
         [HttpGet("{id}")]
-        public IActionResult Get(Guid id)
+        public CarDTO Get(Guid id)
         {
-            return Ok(_carRepository.GetById(id));
+            var car = _carRepository.GetById(id);
+
+            CarDTO carDto = _mapper.Map<CarDTO>(car);
+            return carDto;
         }
         [HttpPost]
-        public IActionResult Create(CreateCarDto createCarDto)
+        public CreateCarDto Create(CreateCarDto createCarDto)
         {
             var car = new Car
             {
@@ -80,18 +83,18 @@ namespace APIPart.Controllers
                 DriverId = createCarDto.DriverId
             };
             _carRepository.Add(car);
-        
-            return Ok();
+            CreateCarDto carDto = _mapper.Map<CreateCarDto>(car);
+            return carDto;
         }
 
         [HttpPut("{id}")]
-        public IActionResult Update(Guid id, UpdateCarDto updateCarDto)
+        public UpdateCarDto Update(Guid id, UpdateCarDto updateCarDto)
         {
 
             var car = _carRepository.GetById(id);
             if (car == null)
             {
-                return NotFound();
+                return null;
             }
             car.Number = updateCarDto.Number;
             car.Type = updateCarDto.Type;
@@ -101,20 +104,22 @@ namespace APIPart.Controllers
 
             car.DriverId = updateCarDto.DriverId;
             _carRepository.Update(id,car);
-            return Ok();
+            UpdateCarDto carDto = _mapper.Map<UpdateCarDto>(car);
+            return carDto;
         }
         [HttpDelete("{id}")]
-        public IActionResult Delete(Guid id)
+        public CarDTO Delete(Guid id)
         {
             var car = _carRepository.GetById(id);
             if (car == null)
             {
-                return NotFound();
+                return null;
             }
             _carRepository.Delete(id);
 
+            CarDTO carDto = _mapper.Map<CarDTO>(car);
 
-            return Ok();
+            return carDto;
         }
 
 

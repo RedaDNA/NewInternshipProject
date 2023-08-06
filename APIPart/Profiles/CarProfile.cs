@@ -9,6 +9,12 @@ namespace APIPart.Profiles
         {
             CreateMap<CarDTO, Car>();
             CreateMap<CarPaginationDto, List<CarListDto>>();
+           CreateMap<List<CarListDto>, CarPaginationDto>()
+            .ForMember(d => d.CarList, 
+            opt => opt.MapFrom(src => src))
+                    .ForMember(d => d.Count,
+                    
+                    opt => opt.MapFrom(src => src.Count()));
         }
 
 
