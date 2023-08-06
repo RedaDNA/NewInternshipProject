@@ -22,7 +22,7 @@ namespace APIPart.Controllers
         public IActionResult GetOwners([FromQuery] Parameters parameters)
         {
             //here is my question, in the referance they used .Owners
-            var cars = _carRepository.Cars.GetCars(parameters);
+            var cars = _carRepository.GetCars(parameters);
 
             var metadata = new
             {
