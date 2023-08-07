@@ -1,6 +1,7 @@
 ﻿using APIPart.DTOs;
 using AutoMapper;
 using Core.Entities;
+using Core.enums;
 using Core.Interfaces;
 using Core.Models;
 
@@ -27,12 +28,38 @@ namespace APIPart.Controllers
         [HttpGet]
         public CarPaginationDto GetCars([FromQuery] CarRequestDto carRequestDto)
         {
-            //here is my question, in the referance they used .Owners
-            var query = _carRepository.GetQueryable().
-                Where(x =>x.Color.ToLower().Contains(carRequestDto.SearchWord.ToLower()));
+            var searchWord = carRequestDto.SearchWord.ToLower();
+
+            var query = _carRepository.GetQueryable()
+                .Where(c =>
+                    c.Number.ToLower().Contains(searchWord) ||
+                    c.Type.ToLower().Contains(searchWord) ||
+                    c.Color.ToLower().Contains(searchWord) ||
+                    c.DailyFare.ToString().Contains(searchWord) ||
+                    c.HasDriver.ToString().ToLower().Contains(searchWord) ||
+                    c.IsAvailable.ToString().ToLower().Contains(searchWord) ||
+                    (c.DriverId != null && c.DriverId.ToString().Contains(searchWord))
+                );
             var count = query.Count();
-            query = query.Skip(carRequestDto.PageNumber).Take(carRequestDto.PageSize);
-          
+            if (carRequestDto.SortingType == SortingType.asc)
+            {
+                query = query.OrderBy(c => c.Number);
+            }
+            else if (carRequestDto.SortingType == SortingType.desc)
+            {
+                query = query.OrderByDescending(c => c.Number);
+            }
+
+
+            /*
+            var query = _carRepository.GetQueryable().
+                Where(x =>x.Color.ToLower().Contains(carRequestDto.SearchWord.ToLower()));*/
+        
+            //       query = query.Skip(carRequestDto.PageNumber).Take(carRequestDto.PageSize);
+            var pageIndex = carRequestDto.PageNumber - 1; 
+            var pageSize = carRequestDto.PageSize;
+
+            query = query.Skip(pageIndex * pageSize).Take(pageSize);
             var cars = query.ToList();
    
             var carPaginationDto = _mapper.Map<CarPaginationDto>(cars);
