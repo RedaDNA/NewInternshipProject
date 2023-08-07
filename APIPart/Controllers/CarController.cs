@@ -6,6 +6,7 @@ using Core.Models;
 
 using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
+using System.Linq;
 
 namespace APIPart.Controllers
 {
@@ -27,16 +28,13 @@ namespace APIPart.Controllers
         public CarPaginationDto GetCars([FromQuery] CarRequestDto carRequestDto)
         {
             //here is my question, in the referance they used .Owners
-            var query = _carRepository.GetQueryable();
+            var query = _carRepository.GetQueryable().
+                Where(x =>x.Color.ToLower().Contains(carRequestDto.SearchWord.ToLower()));
             var count = query.Count();
             query = query.Skip(carRequestDto.PageNumber).Take(carRequestDto.PageSize);
+          
             var cars = query.ToList();
-            // var carList = _mapper.Map<CarListDto>(cars);
-            //  CarPaginationDto carPaginationDto = new CarPaginationDto();
-            //  var carListDtos =    _mapper.Map <List<CarListDto>>(cars);
-
-            //    var cc = _mapper.Map<List<CarListDto>>(cars);
-            //  var carPaginationDto = _mapper.Map<CarPaginationDto>(cc);
+   
             var carPaginationDto = _mapper.Map<CarPaginationDto>(cars);
             carPaginationDto.Count = count;
             return carPaginationDto;

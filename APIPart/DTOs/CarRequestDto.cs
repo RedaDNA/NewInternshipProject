@@ -6,8 +6,8 @@ namespace APIPart.DTOs
     {
       public int PageSize { get; set; }
         public int PageNumber { get; set; } = 1;
-        
-        public string? SearchWord { get; set; }
+
+        public string? SearchWord { get; set; } = "";
         public SortingType? SortingType { get; set; }
     }
 }

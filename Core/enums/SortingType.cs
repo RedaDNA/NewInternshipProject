@@ -1,13 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Core.enums
 {
-    public enum SortingType
+    public enum SortingType 
+
     {
-        asc, desc
+        [Description("asc")]
+          asc,
+        [Description("desc")]
+            desc
     }
 }
