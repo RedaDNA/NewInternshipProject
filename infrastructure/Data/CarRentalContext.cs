@@ -1,10 +1,17 @@
 ﻿using Core.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Infrastructure.Data
 {
     public class CarRentalContext: DbContext 
     {
+        public CarRentalContext(DbContextOptions options)
+        : base(options)
+        {
+        }
+
         public DbSet<Car> Cars { get; set; }
         public DbSet<Driver> Drivers { get; set; }
         public DbSet<Rental> Rentals { get; set; }
@@ -15,6 +22,7 @@ namespace Infrastructure.Data
             optionsBuilder.UseSqlServer("Server=localhost\\SQLEXPRESS01;Database=master;Trusted_Connection=True;TrustServerCertificate=True;");
         }
 
+       
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
           

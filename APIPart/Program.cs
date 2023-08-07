@@ -1,5 +1,6 @@
 using Core.Entities;
 using Core.Interfaces;
+using infrastructure.Data;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -10,11 +11,16 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddEndpointsApiExplorer();     
 builder.Services.AddSwaggerGen();
 builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.AddControllersWithViews();
-//builder.Services.AddScoped<Core.Interfaces.IGenericRepository<BaseEntity>, Core.Interfaces.IGenericRepository<BaseEntity>>();
+builder.Services.AddDbContext<CarRentalContext>(options =>
+    options.UseSqlServer("Server=localhost\\SQLEXPRESS01;Database=master;Trusted_Connection=True;TrustServerCertificate=True;"));
+builder.Services.AddTransient(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+
+
+//builder.Services.AddTransient<IGenericRepository<Car>, GenericRepository<Car>>();
 //builder.Services.AddScoped<ICarRepository, CarRepository>();
 
 var app = builder.Build();

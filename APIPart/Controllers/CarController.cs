@@ -24,22 +24,25 @@ namespace APIPart.Controllers
         [Route("GetCars")]
 
         [HttpGet]
-        public CarPaginationDto GetCars([FromQuery] PaginationParameters parameters)
+        public CarPaginationDto GetCars([FromQuery] CarRequestDto carRequestDto)
         {
             //here is my question, in the referance they used .Owners
             var query = _carRepository.GetQueryable();
             var count = query.Count();
-            query = query.Skip(parameters.PageNumber).Take(parameters.PageSize);
+            query = query.Skip(carRequestDto.PageNumber).Take(carRequestDto.PageSize);
             var cars = query.ToList();
             // var carList = _mapper.Map<CarListDto>(cars);
             //  CarPaginationDto carPaginationDto = new CarPaginationDto();
-         var carListDto =    _mapper.Map <CarListDto>(cars);
-            var carPaginationDto = _mapper.Map<CarPaginationDto>(carListDto);
+            //  var carListDtos =    _mapper.Map <List<CarListDto>>(cars);
 
+            //    var cc = _mapper.Map<List<CarListDto>>(cars);
+            //  var carPaginationDto = _mapper.Map<CarPaginationDto>(cc);
+            var carPaginationDto = _mapper.Map<CarPaginationDto>(cars);
+            carPaginationDto.Count = count;
             return carPaginationDto;
         }
         [HttpGet]
-        public CarListDto GetList()
+        public IEnumerable<CarListDto> GetList()
         { /*
                  var cars = _carRepository.
                     GetAll().Select(c => new CarListDto
@@ -58,7 +61,7 @@ namespace APIPart.Controllers
 
             var cars = _carRepository.
                         GetAll();
-            CarListDto carListDto = _mapper.Map<CarListDto>(cars);
+            IEnumerable<CarListDto>? carListDto = _mapper.Map<IEnumerable<CarListDto>>(cars);
             return carListDto;
         }
         [HttpGet("{id}")]
@@ -71,7 +74,7 @@ namespace APIPart.Controllers
         }
         [HttpPost]
         public CreateCarDto Create(CreateCarDto createCarDto)
-        {
+        {/*
             var car = new Car
             {
                 Number = createCarDto.Number,
@@ -80,11 +83,14 @@ namespace APIPart.Controllers
                 Color = createCarDto.Color,
                 DailyFare = createCarDto.DailyFare,
 
-                DriverId = createCarDto.DriverId
+                //DriverId = createCarDto.DriverId
             };
             _carRepository.Add(car);
             CreateCarDto carDto = _mapper.Map<CreateCarDto>(car);
-            return carDto;
+            return carDto;*/
+            Car toCreateCar= _mapper.Map<Car>(createCarDto);
+            _carRepository.Add(toCreateCar);
+            return createCarDto;
         }
 
         [HttpPut("{id}")]
