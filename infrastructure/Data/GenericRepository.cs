@@ -49,8 +49,8 @@ namespace infrastructure.Data
             }
           else
             {
-                oldEntity = entity;
-                _context.Update(oldEntity);
+              
+                _context.Update(oldEntity).CurrentValues.SetValues(entity); ;
                 _context.SaveChanges();
                 return true;
             }

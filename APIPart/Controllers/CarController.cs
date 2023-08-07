@@ -41,22 +41,7 @@ namespace APIPart.Controllers
         }
         [HttpGet]
         public IEnumerable<CarListDto> GetList()
-        { /*
-                 var cars = _carRepository.
-                    GetAll().Select(c => new CarListDto
-                    {
-                      
-                        Number = c.Number,
-                        Type = c.Type,
-                        EngineCapacity = c.EngineCapacity,
-                        Color = c.Color,
-                        DailyFare = c.DailyFare,
-
-                        DriverId = c.DriverId
-                    });
-            return Ok(cars);
-            */
-
+        {
             var cars = _carRepository.
                         GetAll();
             IEnumerable<CarListDto>? carListDto = _mapper.Map<IEnumerable<CarListDto>>(cars);
@@ -94,7 +79,7 @@ namespace APIPart.Controllers
         [HttpPut("{id}")]
         public UpdateCarDto Update(Guid id, UpdateCarDto updateCarDto)
         {
-
+            /*
             var car = _carRepository.GetById(id);
             if (car == null)
             {
@@ -107,9 +92,20 @@ namespace APIPart.Controllers
             car.DailyFare = updateCarDto.DailyFare;
 
             car.DriverId = updateCarDto.DriverId;
-            _carRepository.Update(id,car);
-            UpdateCarDto carDto = _mapper.Map<UpdateCarDto>(car);
-            return carDto;
+            _carRepository.Update(id,car);*/
+            var car = _carRepository.GetById(id);
+            if (car == null)
+            {
+                return null;
+            }
+            else {
+                
+                var newCar = _mapper.Map<Car>(updateCarDto);
+                _carRepository.Update(id, newCar);
+                return updateCarDto;
+            }
+           
+           
         }
         [HttpDelete("{id}")]
         public CarDTO Delete(Guid id)

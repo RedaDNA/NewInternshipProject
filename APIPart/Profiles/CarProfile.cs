@@ -9,10 +9,10 @@ namespace APIPart.Profiles
     {
         public CarProfile()
         {
-            CreateMap<CarDTO, Car>();
+            CreateMap<Car, CarDTO>();
             CreateMap <CreateCarDto, Car>();
-           
 
+             CreateMap<UpdateCarDto, Car>();
             CreateMap<CarListDto, Car>();
             CreateMap<Car, CarListDto>();
         /*    CreateMap<List<CarListDto>,CarPaginationDto >().ForMember(des => des.CarList,
