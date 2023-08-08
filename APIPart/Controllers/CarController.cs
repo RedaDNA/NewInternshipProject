@@ -49,7 +49,7 @@ namespace APIPart.Controllers
                 );
             if (query == null)
             {
-                return new ApiResponse(404, "Car not found with id ");
+                return new ApiResponse(404, "No Cars ");
             }
             var count = query.Count();
             if (listRequestDto.SortingType == SortingType.asc)
