@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 using APIPart.DTOs;
+using APIPart.ErrorHandling;
+using Azure.Core;
 
 namespace APIPart.Controllers
 {
@@ -18,7 +20,8 @@ namespace APIPart.Controllers
         private IGenericRepository<Car> _carRepository;
 
         private readonly IMapper _mapper;
-        public CarController(IGenericRepository<Car> carRepository, IMapper mapper) {
+        public CarController(IGenericRepository<Car> carRepository, IMapper mapper)
+        {
             _carRepository = carRepository;
             _mapper = mapper;
         }
@@ -26,8 +29,12 @@ namespace APIPart.Controllers
         [Route("GetCars")]
 
         [HttpGet]
-        public CarPaginationDto GetCars([FromQuery] ListRequestDto listRequestDto)
+        public ApiResponse GetCars([FromQuery] ListRequestDto listRequestDto)
         {
+            if (!ModelState.IsValid)
+            {
+                return new ApiBadRequestResponse(ModelState);
+            }
             var searchWord = listRequestDto.SearchWord.ToLower();
 
             var query = _carRepository.GetQueryable()
@@ -40,6 +47,10 @@ namespace APIPart.Controllers
                     c.IsAvailable.ToString().ToLower().Contains(searchWord) ||
                     (c.DriverId != null && c.DriverId.ToString().Contains(searchWord))
                 );
+            if (query == null)
+            {
+                return new ApiResponse(404, "Car not found with id ");
+            }
             var count = query.Count();
             if (listRequestDto.SortingType == SortingType.asc)
             {
@@ -49,104 +60,115 @@ namespace APIPart.Controllers
             {
                 query = query.OrderByDescending(c => c.Number);
             }
-
-
-            /*
-            var query = _carRepository.GetQueryable().
-                Where(x =>x.Color.ToLower().Contains(carRequestDto.SearchWord.ToLower()));*/
-        
-            //       query = query.Skip(carRequestDto.PageNumber).Take(carRequestDto.PageSize);
-            var pageIndex = listRequestDto.PageNumber - 1; 
+            var pageIndex = listRequestDto.PageNumber - 1;
             var pageSize = listRequestDto.PageSize;
 
             query = query.Skip(pageIndex * pageSize).Take(pageSize);
             var cars = query.ToList();
-   
+
             var carPaginationDto = _mapper.Map<CarPaginationDto>(cars);
             carPaginationDto.Count = count;
-            return carPaginationDto;
+            return new ApiOkResponse(carPaginationDto); ;
         }
         [HttpGet]
-        public IEnumerable<CarListDto> GetList()
+        public ApiResponse GetList()
         {
+            if (!ModelState.IsValid)
+            {
+                return new ApiBadRequestResponse(ModelState);
+            }
             var cars = _carRepository.
                         GetAll();
+            if (cars == null)
+            {
+                return new ApiResponse(404, "No cars found");
+            }
             IEnumerable<CarListDto>? carListDto = _mapper.Map<IEnumerable<CarListDto>>(cars);
-            return carListDto;
+            return new ApiOkResponse(carListDto);
         }
         [HttpGet("{id}")]
-        public CarDTO Get(Guid id)
+        public ApiResponse Get(Guid id)
         {
+            if (!ModelState.IsValid)
+            {
+                return new ApiBadRequestResponse(ModelState);
+            }
             var car = _carRepository.GetById(id);
 
+            if (car == null)
+            {
+                return new ApiResponse(404, "Car not found with id " + id.ToString());
+            }
             CarDTO carDto = _mapper.Map<CarDTO>(car);
-            return carDto;
+
+            return new ApiOkResponse(carDto);
+
+
+
         }
         [HttpPost]
-        public CreateCarDto Create(CreateCarDto createCarDto)
-        {/*
-            var car = new Car
+        public ApiResponse Create(CreateCarDto createCarDto)
+        {
+            if (!ModelState.IsValid)
             {
-                Number = createCarDto.Number,
-                Type = createCarDto.Type,
-                EngineCapacity = createCarDto.EngineCapacity,
-                Color = createCarDto.Color,
-                DailyFare = createCarDto.DailyFare,
+                return new ApiBadRequestResponse(ModelState);
+            }
+            
+            Car toCreateCar = _mapper.Map<Car>(createCarDto);
+            try { _carRepository.Add(toCreateCar); }
 
-                //DriverId = createCarDto.DriverId
-            };
-            _carRepository.Add(car);
-            CreateCarDto carDto = _mapper.Map<CreateCarDto>(car);
-            return carDto;*/
-            Car toCreateCar= _mapper.Map<Car>(createCarDto);
-            _carRepository.Add(toCreateCar);
-            return createCarDto;
+            catch (Exception ex)
+            {
+
+                return new ApiResponse(400, ex.Message);
+            }
+       
+            return new ApiOkResponse(createCarDto);
+
         }
 
         [HttpPut("{id}")]
-        public UpdateCarDto Update(Guid id, UpdateCarDto updateCarDto)
+        public ApiResponse Update(Guid id, UpdateCarDto updateCarDto)
         {
-            /*
+            if (!ModelState.IsValid)
+            {
+                return new ApiBadRequestResponse(ModelState);
+            }
             var car = _carRepository.GetById(id);
             if (car == null)
             {
-                return null;
+                return new ApiResponse(404, "Car not found with id " + id.ToString());
             }
-            car.Number = updateCarDto.Number;
-            car.Type = updateCarDto.Type;
-            car.EngineCapacity = updateCarDto.EngineCapacity;
-            car.Color = updateCarDto.Color;
-            car.DailyFare = updateCarDto.DailyFare;
 
-            car.DriverId = updateCarDto.DriverId;
-            _carRepository.Update(id,car);*/
-            var car = _carRepository.GetById(id);
-            if (car == null)
+            var newCar = _mapper.Map<Car>(updateCarDto);
+
+            try { _carRepository.Update(id, newCar); }
+
+            catch (Exception ex)
             {
-                return null;
+
+                return new ApiResponse(400, ex.Message);
             }
-            else {
-                
-                var newCar = _mapper.Map<Car>(updateCarDto);
-                _carRepository.Update(id, newCar);
-                return updateCarDto;
-            }
-           
-           
+            return new ApiOkResponse(updateCarDto);
         }
+    
         [HttpDelete("{id}")]
-        public CarDTO Delete(Guid id)
+        public ApiResponse Delete(Guid id)
         {
+            if (!ModelState.IsValid)
+            {
+                return new ApiBadRequestResponse(ModelState);
+            }
             var car = _carRepository.GetById(id);
             if (car == null)
             {
-                return null;
+                return new ApiResponse(404, "Car not found with id " + id.ToString());
             }
             _carRepository.Delete(id);
 
             CarDTO carDto = _mapper.Map<CarDTO>(car);
 
-            return carDto;
+            return new ApiOkResponse(carDto);
         }
 
 
@@ -261,6 +283,34 @@ namespace APIPart.Controllers
 
                 return NoContent();
             }
+             /*
+            var car = _carRepository.GetById(id);
+            if (car == null)
+            {
+                return null;
+            }
+            car.Number = updateCarDto.Number;
+            car.Type = updateCarDto.Type;
+            car.EngineCapacity = updateCarDto.EngineCapacity;
+            car.Color = updateCarDto.Color;
+            car.DailyFare = updateCarDto.DailyFare;
+
+            car.DriverId = updateCarDto.DriverId;
+            _carRepository.Update(id,car);*/
+            /*
+            var car = new Car
+            {
+                Number = createCarDto.Number,
+                Type = createCarDto.Type,
+                EngineCapacity = createCarDto.EngineCapacity,
+                Color = createCarDto.Color,
+                DailyFare = createCarDto.DailyFare,
+
+                //DriverId = createCarDto.DriverId
+            };
+            _carRepository.Add(car);
+            CreateCarDto carDto = _mapper.Map<CreateCarDto>(car);
+            return carDto;
             */
 
         }
