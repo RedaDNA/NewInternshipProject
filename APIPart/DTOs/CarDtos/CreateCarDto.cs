@@ -1,4 +1,4 @@
-﻿namespace APIPart.DTOs
+﻿namespace APIPart.DTOs.CarDtos
 {
     public class CreateCarDto
     {

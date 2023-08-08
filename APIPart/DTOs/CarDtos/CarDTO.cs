@@ -1,6 +1,6 @@
-﻿namespace APIPart.DTOs
+﻿namespace APIPart.DTOs.CarDtos
 {
-    public class CarListDto
+    public class CarDTO
     {
         public Guid Id { get; set; }
         public string Number { get; set; }
@@ -10,7 +10,5 @@
         public decimal DailyFare { get; set; }
         public bool WithDriver { get; set; }
         public Guid? DriverId { get; set; }
-
-
     }
 }

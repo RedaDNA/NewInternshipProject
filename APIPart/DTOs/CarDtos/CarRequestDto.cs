@@ -1,6 +1,6 @@
-﻿using Core.enums;
+﻿using Core.enums;   
 
-namespace APIPart.DTOs
+namespace APIPart.DTOs.CarDtos
 {
     public class CarRequestDto
     {

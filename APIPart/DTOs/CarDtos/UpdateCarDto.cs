@@ -1,5 +1,5 @@
-﻿namespace APIPart.DTOs
-{
+﻿namespace APIPart.DTOs.CarDtos
+{   
     public class UpdateCarDto
     {
         public Guid Id{ get; set; }

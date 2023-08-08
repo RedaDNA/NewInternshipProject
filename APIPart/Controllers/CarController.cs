@@ -1,13 +1,13 @@
-﻿using APIPart.DTOs;
-using AutoMapper;
+﻿using AutoMapper;
 using Core.Entities;
 using Core.enums;
 using Core.Interfaces;
 using Core.Models;
-
+using APIPart.DTOs.CarDtos;
 using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
+using APIPart.DTOs;
 
 namespace APIPart.Controllers
 {
@@ -26,9 +26,9 @@ namespace APIPart.Controllers
         [Route("GetCars")]
 
         [HttpGet]
-        public CarPaginationDto GetCars([FromQuery] CarRequestDto carRequestDto)
+        public CarPaginationDto GetCars([FromQuery] ListRequestDto listRequestDto)
         {
-            var searchWord = carRequestDto.SearchWord.ToLower();
+            var searchWord = listRequestDto.SearchWord.ToLower();
 
             var query = _carRepository.GetQueryable()
                 .Where(c =>
@@ -41,11 +41,11 @@ namespace APIPart.Controllers
                     (c.DriverId != null && c.DriverId.ToString().Contains(searchWord))
                 );
             var count = query.Count();
-            if (carRequestDto.SortingType == SortingType.asc)
+            if (listRequestDto.SortingType == SortingType.asc)
             {
                 query = query.OrderBy(c => c.Number);
             }
-            else if (carRequestDto.SortingType == SortingType.desc)
+            else if (listRequestDto.SortingType == SortingType.desc)
             {
                 query = query.OrderByDescending(c => c.Number);
             }
@@ -56,8 +56,8 @@ namespace APIPart.Controllers
                 Where(x =>x.Color.ToLower().Contains(carRequestDto.SearchWord.ToLower()));*/
         
             //       query = query.Skip(carRequestDto.PageNumber).Take(carRequestDto.PageSize);
-            var pageIndex = carRequestDto.PageNumber - 1; 
-            var pageSize = carRequestDto.PageSize;
+            var pageIndex = listRequestDto.PageNumber - 1; 
+            var pageSize = listRequestDto.PageSize;
 
             query = query.Skip(pageIndex * pageSize).Take(pageSize);
             var cars = query.ToList();

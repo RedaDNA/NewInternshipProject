@@ -1,7 +1,7 @@
-﻿using APIPart.DTOs;
-using Core.Entities;
+﻿using Core.Entities;
 using AutoMapper;
 using Microsoft.AspNetCore.Routing.Constraints;
+using APIPart.DTOs.CarDtos;
 
 namespace APIPart.Profiles
 {
@@ -15,11 +15,13 @@ namespace APIPart.Profiles
              CreateMap<UpdateCarDto, Car>();
             CreateMap<CarListDto, Car>();
             CreateMap<Car, CarListDto>();
-        /*    CreateMap<List<CarListDto>,CarPaginationDto >().ForMember(des => des.CarList,
-                o => o.MapFrom(d => d));*/
+       
 
             CreateMap<List<Car>, CarPaginationDto>().ForMember(des => des.CarList,
                 src => src.MapFrom(c => c));
+
+
+
 
             /* var configuration = new MapperConfiguration(cfg => {
                  cfg.CreateMap<CarListDto, Car>().ConvertUsing(s =>s.Id,d =>d.MapFrom(c => c.));
