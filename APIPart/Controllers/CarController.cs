@@ -10,6 +10,7 @@ using System.Linq;
 using APIPart.DTOs;
 using APIPart.ErrorHandling;
 using Azure.Core;
+using Microsoft.EntityFrameworkCore;
 
 namespace APIPart.Controllers
 {
@@ -20,23 +21,25 @@ namespace APIPart.Controllers
         private IGenericRepository<Car> _carRepository;
 
         private readonly IMapper _mapper;
-        public CarController(IGenericRepository<Car> carRepository, IMapper mapper)
+        private IGenericRepository<Driver> _driverRepository;
+        public CarController(IGenericRepository<Car> carRepository, IMapper mapper, IGenericRepository<Driver> driverRepository)
         {
             _carRepository = carRepository;
             _mapper = mapper;
+            _driverRepository = driverRepository;
         }
 
         [Route("GetCars")]
 
         [HttpGet]
-        public ApiResponse GetCars([FromQuery] ListRequestDto listRequestDto)
+        public async Task<ApiResponse> GetCars([FromQuery] ListRequestDto listRequestDto)
         {
             if (!ModelState.IsValid)
             {
                 return new ApiBadRequestResponse(ModelState);
             }
             var searchWord = listRequestDto.SearchWord.ToLower();
-
+            /*
             var query = _carRepository.GetQueryable()
                 .Where(c =>
                     c.Number.ToLower().Contains(searchWord) ||
@@ -46,12 +49,34 @@ namespace APIPart.Controllers
                     c.HasDriver.ToString().ToLower().Contains(searchWord) ||
                     c.IsAvailable.ToString().ToLower().Contains(searchWord) ||
                     (c.DriverId != null && c.DriverId.ToString().Contains(searchWord))
-                );
+                );*/
+          var query = _carRepository.GetQueryable()
+          .GroupJoin(
+              _driverRepository.GetQueryable(),
+              car => car.DriverId,
+              driver => driver.Id,
+              (car, drivers) => new { Car = car, Drivers = drivers.DefaultIfEmpty() }
+          )
+          .SelectMany(
+              x => x.Drivers,
+              (carResult, driver) => new { Car = carResult.Car, Driver = driver }
+          )
+          .Where(c =>
+              c.Car.Number.ToLower().Contains(searchWord) ||
+              c.Car.Type.ToLower().Contains(searchWord) ||
+              c.Car.Color.ToLower().Contains(searchWord) ||
+              c.Car.DailyFare.ToString().Contains(searchWord) ||
+              c.Car.HasDriver.ToString().ToLower().Contains(searchWord) ||
+              c.Car.IsAvailable.ToString().ToLower().Contains(searchWord) ||
+              (c.Driver != null && c.Driver.Name.ToLower().Contains(searchWord))
+          )
+          .Select(c => c.Car);
+          
             if (query == null)
             {
                 return new ApiResponse(404, "No Cars ");
             }
-            var count = query.Count();
+            var count = await  query.CountAsync();
             if (listRequestDto.SortingType == SortingType.asc)
             {
                 query = query.OrderBy(c => c.Number);
@@ -64,21 +89,21 @@ namespace APIPart.Controllers
             var pageSize = listRequestDto.PageSize;
 
             query = query.Skip(pageIndex * pageSize).Take(pageSize);
-            var cars = query.ToList();
+            var cars = await query.ToListAsync();
 
             var carPaginationDto = _mapper.Map<CarPaginationDto>(cars);
             carPaginationDto.Count = count;
             return new ApiOkResponse(carPaginationDto); ;
         }
         [HttpGet]
-        public ApiResponse GetList()
+        public async Task<ApiResponse> GetList()
         {
             if (!ModelState.IsValid)
             {
                 return new ApiBadRequestResponse(ModelState);
             }
-            var cars = _carRepository.
-                        GetAll();
+            var cars = await _carRepository.
+                        GetAllAsync();
             if (cars == null)
             {
                 return new ApiResponse(404, "No cars found");
@@ -87,13 +112,14 @@ namespace APIPart.Controllers
             return new ApiOkResponse(carListDto);
         }
         [HttpGet("{id}")]
-        public ApiResponse Get(Guid id)
+        public async Task<ApiResponse> Get(Guid id)
         {
             if (!ModelState.IsValid)
             {
                 return new ApiBadRequestResponse(ModelState);
             }
-            var car = _carRepository.GetById(id);
+
+            var car = await _carRepository.GetByIdAsync(id);
 
             if (car == null)
             {
@@ -107,15 +133,28 @@ namespace APIPart.Controllers
 
         }
         [HttpPost]
-        public ApiResponse Create(CreateCarDto createCarDto)
+        public async Task<ApiResponse> Create(CreateCarDto createCarDto)
         {
             if (!ModelState.IsValid)
             {
                 return new ApiBadRequestResponse(ModelState);
             }
-            
+            bool HasDriver = createCarDto.DriverId.HasValue;
+            if (HasDriver)
+            {
+               
+                var driver = await _driverRepository.GetByIdAsync(createCarDto.DriverId.Value);
+                if (driver == null)
+                {
+                    return new ApiResponse(400, "Invalid DriverId specified, no driver have this id");
+                }
+            }
             Car toCreateCar = _mapper.Map<Car>(createCarDto);
-            try { _carRepository.Add(toCreateCar); }
+            toCreateCar.HasDriver = HasDriver;
+            try {var createdCar = await _carRepository.AddAsync(toCreateCar);
+                var createdCarDto = _mapper.Map<CarDTO>(createdCar);
+                return new ApiOkResponse(createdCarDto);
+            }
 
             catch (Exception ex)
             {
@@ -123,18 +162,18 @@ namespace APIPart.Controllers
                 return new ApiResponse(400, ex.Message);
             }
        
-            return new ApiOkResponse(createCarDto);
+           
 
         }
 
         [HttpPut("{id}")]
-        public ApiResponse Update(Guid id, UpdateCarDto updateCarDto)
+        public async Task<ApiResponse> Update(Guid id, UpdateCarDto updateCarDto)
         {
             if (!ModelState.IsValid)
             {
                 return new ApiBadRequestResponse(ModelState);
             }
-            var car = _carRepository.GetById(id);
+            var car = await _carRepository.GetByIdAsync(id);
             if (car == null)
             {
                 return new ApiResponse(404, "Car not found with id " + id.ToString());
@@ -142,7 +181,7 @@ namespace APIPart.Controllers
 
             var newCar = _mapper.Map<Car>(updateCarDto);
 
-            try { _carRepository.Update(id, newCar); }
+            try { await _carRepository.UpdateAsync(id, newCar); }
 
             catch (Exception ex)
             {
@@ -153,18 +192,18 @@ namespace APIPart.Controllers
         }
     
         [HttpDelete("{id}")]
-        public ApiResponse Delete(Guid id)
+        public async Task<ApiResponse> Delete(Guid id)
         {
             if (!ModelState.IsValid)
             {
                 return new ApiBadRequestResponse(ModelState);
             }
-            var car = _carRepository.GetById(id);
+            var car = await _carRepository.GetByIdAsync(id);
             if (car == null)
             {
                 return new ApiResponse(404, "Car not found with id " + id.ToString());
             }
-            _carRepository.Delete(id);
+            await _carRepository.DeleteAsync(id);
 
             CarDTO carDto = _mapper.Map<CarDTO>(car);
 

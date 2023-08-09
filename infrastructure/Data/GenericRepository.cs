@@ -23,26 +23,28 @@ namespace infrastructure.Data
         {
             return _context.Set<T>().AsQueryable();
         }
-        public IEnumerable<T> GetAll()
+        public async Task<IEnumerable<T>> GetAllAsync()
 
         {       
-                return _context.Set<T>().ToList();
+                return   _context.Set<T>().ToList();
         }
 
-        public T GetById(Guid id)
+        public async Task<T> GetByIdAsync(Guid id)
         {
             return _context.Set<T>().FirstOrDefault(c => c.Id == id);
         }
 
-        public void Add(T entity)
+        public async Task<T> AddAsync(T entity)
         {
             _context.Set<T>().Add(entity);
+
             _context.SaveChanges();
+            return entity;
         }
 
-        public bool Update(Guid id,T entity)
+        public async Task<bool> UpdateAsync(Guid id,T entity)
         {
-            var oldEntity= _context.Set<T>().FirstOrDefault(c => c.Id == id);
+            var oldEntity=  _context.Set<T>().FirstOrDefault(c => c.Id == id);
             if (oldEntity == null)
             {
                 return false;
@@ -56,7 +58,7 @@ namespace infrastructure.Data
             }
         }
 
-        public bool Delete(Guid id)
+        public async Task<bool> DeleteAsync(Guid id)
         {
             var toRemoveEntity = _context.Set<T>().FirstOrDefault(c => c.Id == id);
             if (toRemoveEntity == null)

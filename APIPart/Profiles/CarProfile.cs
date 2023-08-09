@@ -11,8 +11,8 @@ namespace APIPart.Profiles
         {
             CreateMap<Car, CarDTO>();
             CreateMap <CreateCarDto, Car>();
-
-             CreateMap<UpdateCarDto, Car>();
+        
+            CreateMap<UpdateCarDto, Car>();
             CreateMap<CarListDto, Car>();
             CreateMap<Car, CarListDto>();
        

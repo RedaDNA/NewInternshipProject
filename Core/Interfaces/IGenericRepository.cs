@@ -10,11 +10,11 @@ namespace Core.Interfaces
 {
     public interface IGenericRepository<T> where T : BaseEntity
     {
-        IEnumerable<T> GetAll();
-        T GetById(Guid id);
-        void Add(T entity);
-        bool Update(Guid id, T entity);
-        bool Delete(Guid id);
+       Task< IEnumerable<T>> GetAllAsync();
+        Task<T >GetByIdAsync(Guid id);
+       Task<T> AddAsync(T entity);
+        Task< bool> UpdateAsync(Guid id, T entity);
+        Task <bool> DeleteAsync(Guid id);
         IQueryable<T> GetQueryable();
     }
 }

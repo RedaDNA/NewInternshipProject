@@ -55,17 +55,17 @@ namespace APIPart.Controllers
             return customerPaginationDto;
         }
         [HttpGet]
-        public IEnumerable<CustomerListDto> GetList()
+        public async Task<IEnumerable<CustomerListDto>> GetList()
         {
             var customers = _customerRepository.
-                        GetAll();
+                        GetAllAsync();
             IEnumerable<CustomerListDto>? customerListDto = _mapper.Map<IEnumerable<CustomerListDto>>(customers);
             return customerListDto;
         }
         [HttpGet("{id}")]
         public CustomerDto Get(Guid id)
         {
-            var customer = _customerRepository.GetById(id);
+            var customer = _customerRepository.GetByIdAsync(id);
 
             CustomerDto customerDto = _mapper.Map<CustomerDto>(customer);
             return customerDto;
@@ -74,7 +74,7 @@ namespace APIPart.Controllers
         public CreateCustomerDto Create(CreateCustomerDto createCustomerDto)
         {
             Customer toCreateCustomer = _mapper.Map<Customer>(createCustomerDto);
-            _customerRepository.Add(toCreateCustomer);
+            _customerRepository.AddAsync(toCreateCustomer);
             return createCustomerDto;
         }
 
@@ -82,7 +82,7 @@ namespace APIPart.Controllers
         public UpdateCustomerDto Update(Guid id, UpdateCustomerDto updateCustomerDto)
         {
             
-            var customer = _customerRepository.GetById(id);
+            var customer = _customerRepository.GetByIdAsync(id);
             if (customer == null)
             {
                 return null;
@@ -91,7 +91,7 @@ namespace APIPart.Controllers
             {
 
                 var newCustomer = _mapper.Map<Customer>(updateCustomerDto);
-                _customerRepository.Update(id, newCustomer);
+                _customerRepository.UpdateAsync(id, newCustomer);
                 return updateCustomerDto;
             }
 
@@ -100,12 +100,12 @@ namespace APIPart.Controllers
         [HttpDelete("{id}")]
         public CustomerDto Delete(Guid id)
         {
-            var customer = _customerRepository.GetById(id);
+            var customer = _customerRepository.GetByIdAsync(id);
             if (customer == null)
             {
                 return null;
             }
-            _customerRepository.Delete(id);
+            _customerRepository.DeleteAsync(id);
 
             CustomerDto customerDto = _mapper.Map<CustomerDto>(customer);
 

@@ -53,17 +53,17 @@ namespace APIPart.Controllers
             return driverPaginationDto;
         }
         [HttpGet]
-        public IEnumerable<DriverListDto> GetList()
+        public async Task<IEnumerable<DriverListDto>> GetList()
         {
             var drivers = _driverRepository.
-                        GetAll();
+                        GetAllAsync();
             IEnumerable<DriverListDto>? driverListDto = _mapper.Map<IEnumerable<DriverListDto>>(drivers);
             return driverListDto;
         }
         [HttpGet("{id}")]
         public DriverDto Get(Guid id)
         {
-            var driver = _driverRepository.GetById(id);
+            var driver = _driverRepository.GetByIdAsync(id);
 
             DriverDto driverDto = _mapper.Map<DriverDto>(driver);
             return driverDto;
@@ -72,7 +72,7 @@ namespace APIPart.Controllers
         public CreateDriverDto Create(CreateDriverDto createDriverDto)
         {
             Driver toCreateDriver = _mapper.Map<Driver>(createDriverDto);
-            _driverRepository.Add(toCreateDriver);
+            _driverRepository.AddAsync(toCreateDriver);
             return createDriverDto;
         }
 
@@ -80,7 +80,7 @@ namespace APIPart.Controllers
         public UpdateDriverDto Update(Guid id, UpdateDriverDto updateDriverDto)
         {
 
-            var driver = _driverRepository.GetById(id);
+            var driver = _driverRepository.GetByIdAsync(id);
             if (driver == null)
             {
                 return null;
@@ -89,7 +89,7 @@ namespace APIPart.Controllers
             {
 
                 var newDriver = _mapper.Map<Driver>(updateDriverDto);
-                _driverRepository.Update(id, newDriver);
+                _driverRepository.UpdateAsync(id, newDriver);
                 return updateDriverDto;
             }
 
@@ -98,12 +98,12 @@ namespace APIPart.Controllers
         [HttpDelete("{id}")]
         public DriverDto Delete(Guid id)
         {
-            var driver = _driverRepository.GetById(id);
+            var driver = _driverRepository.GetByIdAsync(id);
             if (driver == null)
             {
                 return null;
             }
-            _driverRepository.Delete(id);
+            _driverRepository.DeleteAsync(id);
 
             DriverDto driverDto = _mapper.Map<DriverDto>(driver);
 
