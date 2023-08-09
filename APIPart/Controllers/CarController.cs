@@ -32,24 +32,14 @@ namespace APIPart.Controllers
         [Route("GetCars")]
 
         [HttpGet]
-        public async Task<ApiResponse> GetCars([FromQuery] ListRequestDto listRequestDto)
+        public async Task<ApiResponse> GetCarsAsync([FromQuery] ListRequestDto listRequestDto)
         {
             if (!ModelState.IsValid)
             {
                 return new ApiBadRequestResponse(ModelState);
             }
             var searchWord = listRequestDto.SearchWord.ToLower();
-            /*
-            var query = _carRepository.GetQueryable()
-                .Where(c =>
-                    c.Number.ToLower().Contains(searchWord) ||
-                    c.Type.ToLower().Contains(searchWord) ||
-                    c.Color.ToLower().Contains(searchWord) ||
-                    c.DailyFare.ToString().Contains(searchWord) ||
-                    c.HasDriver.ToString().ToLower().Contains(searchWord) ||
-                    c.IsAvailable.ToString().ToLower().Contains(searchWord) ||
-                    (c.DriverId != null && c.DriverId.ToString().Contains(searchWord))
-                );*/
+         
           var query = _carRepository.GetQueryable()
           .GroupJoin(
               _driverRepository.GetQueryable(),
@@ -96,7 +86,7 @@ namespace APIPart.Controllers
             return new ApiOkResponse(carPaginationDto); ;
         }
         [HttpGet]
-        public async Task<ApiResponse> GetList()
+        public async Task<ApiResponse> GetListAsync()
         {
             if (!ModelState.IsValid)
             {
@@ -112,7 +102,7 @@ namespace APIPart.Controllers
             return new ApiOkResponse(carListDto);
         }
         [HttpGet("{id}")]
-        public async Task<ApiResponse> Get(Guid id)
+        public async Task<ApiResponse> GetAsync(Guid id)
         {
             if (!ModelState.IsValid)
             {
@@ -133,7 +123,7 @@ namespace APIPart.Controllers
 
         }
         [HttpPost]
-        public async Task<ApiResponse> Create(CreateCarDto createCarDto)
+        public async Task<ApiResponse> CreateAsync(CreateCarDto createCarDto)
         {
             if (!ModelState.IsValid)
             {
@@ -167,7 +157,7 @@ namespace APIPart.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<ApiResponse> Update(Guid id, UpdateCarDto updateCarDto)
+        public async Task<ApiResponse> UpdateAsync(Guid id, UpdateCarDto updateCarDto)
         {
             if (!ModelState.IsValid)
             {
@@ -192,7 +182,7 @@ namespace APIPart.Controllers
         }
     
         [HttpDelete("{id}")]
-        public async Task<ApiResponse> Delete(Guid id)
+        public async Task<ApiResponse> DeleteAsync(Guid id)
         {
             if (!ModelState.IsValid)
             {

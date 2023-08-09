@@ -1,6 +1,7 @@
 ﻿using Core.Entities;
 using Core.Interfaces;
 using Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,7 +19,7 @@ namespace infrastructure.Data
         {
             _context = context;
         }
-        public IQueryable<T> GetQueryable()
+        public  IQueryable<T> GetQueryable()
 
         {
             return _context.Set<T>().AsQueryable();
@@ -26,25 +27,25 @@ namespace infrastructure.Data
         public async Task<IEnumerable<T>> GetAllAsync()
 
         {       
-                return   _context.Set<T>().ToList();
+                return await   _context.Set<T>().ToListAsync();
         }
 
         public async Task<T> GetByIdAsync(Guid id)
         {
-            return _context.Set<T>().FirstOrDefault(c => c.Id == id);
+            return await _context.Set<T>().FirstOrDefaultAsync(c => c.Id == id);
         }
 
         public async Task<T> AddAsync(T entity)
         {
-            _context.Set<T>().Add(entity);
+             _context.Set<T>().Add(entity);
 
-            _context.SaveChanges();
+         await   _context.SaveChangesAsync();
             return entity;
         }
 
         public async Task<bool> UpdateAsync(Guid id,T entity)
         {
-            var oldEntity=  _context.Set<T>().FirstOrDefault(c => c.Id == id);
+            var oldEntity= await _context.Set<T>().FirstOrDefaultAsync(c => c.Id == id);
             if (oldEntity == null)
             {
                 return false;
@@ -53,14 +54,14 @@ namespace infrastructure.Data
             {
               
                 _context.Update(oldEntity).CurrentValues.SetValues(entity); ;
-                _context.SaveChanges();
+              await  _context.SaveChangesAsync();
                 return true;
             }
         }
 
         public async Task<bool> DeleteAsync(Guid id)
         {
-            var toRemoveEntity = _context.Set<T>().FirstOrDefault(c => c.Id == id);
+            var toRemoveEntity = await _context.Set<T>().FirstOrDefaultAsync(c => c.Id == id);
             if (toRemoveEntity == null)
             {
                 return false;
@@ -68,7 +69,7 @@ namespace infrastructure.Data
             else
             {
                 _context.Remove(toRemoveEntity);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
                 return true;
             }
           
