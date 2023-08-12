@@ -1,4 +1,5 @@
 ﻿using APIPart.DTOs;
+using APIPart.DTOs.CarDtos;
 using APIPart.DTOs.DriverDtos;
 using AutoMapper;
 using Core.Entities;
@@ -16,7 +17,7 @@ namespace APIPart.Profiles
             CreateMap<UpdateDriverDto, Driver>();
             CreateMap<DriverListDto, Driver>();
             CreateMap<Driver, DriverListDto>();
-
+          
 
             CreateMap<List<Driver>, DriverPaginationDto>().ForMember(des => des.DriverList,
              src => src.MapFrom(c => c));

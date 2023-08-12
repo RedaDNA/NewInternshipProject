@@ -62,10 +62,7 @@ namespace APIPart.Controllers
           )
           .Select(c => c.Car);
           
-            if (query == null)
-            {
-                return new ApiResponse(404, "No Cars ");
-            }
+          
             var count = await  query.CountAsync();
             if (listRequestDto.SortingType == SortingType.asc)
             {
@@ -133,8 +130,8 @@ namespace APIPart.Controllers
             if (HasDriver)
             {
                
-                var driver = await _driverRepository.GetByIdAsync(createCarDto.DriverId.Value);
-                if (driver == null)
+                var driver = await _driverRepository.IsExistAsync(createCarDto.DriverId.Value);
+                if (!driver)
                 {
                     return new ApiResponse(400, "Invalid DriverId specified, no driver have this id");
                 }
@@ -168,10 +165,20 @@ namespace APIPart.Controllers
             {
                 return new ApiResponse(404, "Car not found with id " + id.ToString());
             }
+            bool HasDriver = updateCarDto.DriverId.HasValue;
+            if (HasDriver)
+            {
 
+                var driver = await _driverRepository.IsExistAsync(updateCarDto.DriverId.Value);
+                if (!driver )
+                {
+                    return new ApiResponse(400, "Invalid DriverId specified, no driver have this id");
+                }
+            }
             var newCar = _mapper.Map<Car>(updateCarDto);
-
-            try { await _carRepository.UpdateAsync(id, newCar); }
+            newCar.HasDriver = HasDriver;
+            newCar.Id= id;
+            try {  await _carRepository.UpdateAsync(id, newCar); }
 
             catch (Exception ex)
             {
@@ -188,16 +195,13 @@ namespace APIPart.Controllers
             {
                 return new ApiBadRequestResponse(ModelState);
             }
-            var car = await _carRepository.GetByIdAsync(id);
-            if (car == null)
+            var car = await _carRepository.IsExistAsync(id);
+            if (!car)
             {
                 return new ApiResponse(404, "Car not found with id " + id.ToString());
             }
             await _carRepository.DeleteAsync(id);
-
-            CarDTO carDto = _mapper.Map<CarDTO>(car);
-
-            return new ApiOkResponse(carDto);
+            return new ApiOkResponse("car with id" + id +"is deleted");
         }
 
 

@@ -34,7 +34,10 @@ namespace infrastructure.Data
         {
             return await _context.Set<T>().FirstOrDefaultAsync(c => c.Id == id);
         }
-
+        public async Task<bool> IsExistAsync(Guid id) 
+        {
+            return await _context.Set<T>().AnyAsync(c => c.Id == id);
+        }
         public async Task<T> AddAsync(T entity)
         {
              _context.Set<T>().Add(entity);

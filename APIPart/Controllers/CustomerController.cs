@@ -1,12 +1,13 @@
-﻿
-using APIPart.DTOs;
+﻿using APIPart.DTOs;
 using APIPart.DTOs.CustomerDtos;
+using APIPart.ErrorHandling;
 using AutoMapper;
 using Core.Entities;
 using Core.enums;
 using Core.Interfaces;
 using Infrastructure.Repositories;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace APIPart.Controllers
 {
@@ -23,9 +24,8 @@ namespace APIPart.Controllers
             _mapper = mapper;
         }
         [Route("GetCustomers")]
-
         [HttpGet]
-        public CustomerPaginationDto GetCustomers([FromQuery] ListRequestDto listRequestDto)
+        public async Task<ApiResponse> GetCustomersAsync([FromQuery] ListRequestDto listRequestDto)
         {
             var searchWord = listRequestDto.SearchWord.ToLower();
 
@@ -33,9 +33,9 @@ namespace APIPart.Controllers
                 .Where(c =>
                     c.Name.ToLower().Contains(searchWord) ||
                     c.Phone.ToLower().Contains(searchWord) ||
-                    c.Email.ToLower().Contains(searchWord) 
+                    c.Email.ToLower().Contains(searchWord)
                 );
-            var count = query.Count();
+            var count = await query.CountAsync();
             if (listRequestDto.SortingType == SortingType.asc)
             {
                 query = query.OrderBy(c => c.Name);
@@ -48,68 +48,68 @@ namespace APIPart.Controllers
             var pageSize = listRequestDto.PageSize;
 
             query = query.Skip(pageIndex * pageSize).Take(pageSize);
-            var customers = query.ToList();
+            var customers = await query.ToListAsync();
 
             var customerPaginationDto = _mapper.Map<CustomerPaginationDto>(customers);
             customerPaginationDto.Count = count;
-            return customerPaginationDto;
+            return new ApiOkResponse(customerPaginationDto);
         }
+
         [HttpGet]
-        public async Task<IEnumerable<CustomerListDto>> GetList()
+        public async Task<ApiResponse> GetListAsync()
         {
-            var customers = _customerRepository.
-                        GetAllAsync();
+            var customers = await _customerRepository.GetAllAsync();
+
             IEnumerable<CustomerListDto>? customerListDto = _mapper.Map<IEnumerable<CustomerListDto>>(customers);
-            return customerListDto;
+            return new ApiOkResponse(customerListDto);
         }
+
         [HttpGet("{id}")]
-        public CustomerDto Get(Guid id)
+        public async Task<ApiResponse> GetAsync(Guid id)
         {
-            var customer = _customerRepository.GetByIdAsync(id);
+            var customer = await _customerRepository.GetByIdAsync(id);
 
             CustomerDto customerDto = _mapper.Map<CustomerDto>(customer);
-            return customerDto;
+            return new ApiOkResponse(customerDto);
         }
+
         [HttpPost]
-        public CreateCustomerDto Create(CreateCustomerDto createCustomerDto)
+        public async Task<ApiResponse> CreateAsync(CreateCustomerDto createCustomerDto)
         {
             Customer toCreateCustomer = _mapper.Map<Customer>(createCustomerDto);
-            _customerRepository.AddAsync(toCreateCustomer);
-            return createCustomerDto;
+            await _customerRepository.AddAsync(toCreateCustomer);
+            return new ApiOkResponse(createCustomerDto);
         }
 
         [HttpPut("{id}")]
-        public UpdateCustomerDto Update(Guid id, UpdateCustomerDto updateCustomerDto)
+        public async Task<ApiResponse> UpdateAsync(Guid id, UpdateCustomerDto updateCustomerDto)
         {
-            
-            var customer = _customerRepository.GetByIdAsync(id);
+            var customer = await _customerRepository.GetByIdAsync(id);
             if (customer == null)
             {
                 return null;
             }
             else
             {
-
                 var newCustomer = _mapper.Map<Customer>(updateCustomerDto);
-                _customerRepository.UpdateAsync(id, newCustomer);
-                return updateCustomerDto;
+                await _customerRepository.UpdateAsync(id, newCustomer);
+                return new ApiOkResponse(updateCustomerDto);
             }
-
-
         }
+
         [HttpDelete("{id}")]
-        public CustomerDto Delete(Guid id)
+        public async Task<ApiResponse> DeleteAsync(Guid id)
         {
-            var customer = _customerRepository.GetByIdAsync(id);
+            var customer = await _customerRepository.GetByIdAsync(id);
             if (customer == null)
             {
                 return null;
             }
-            _customerRepository.DeleteAsync(id);
+            await _customerRepository.DeleteAsync(id);
 
             CustomerDto customerDto = _mapper.Map<CustomerDto>(customer);
 
-            return customerDto;
+            return new ApiOkResponse(customerDto);
         }
     }
 }

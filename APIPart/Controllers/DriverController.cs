@@ -5,6 +5,10 @@ using Core.Entities;
 using Core.enums;
 using Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using APIPart.DTOs.CarDtos;
+using APIPart.ErrorHandling;
+using Microsoft.EntityFrameworkCore;
+using Infrastructure.Repositories;
 
 namespace APIPart.Controllers
 {
@@ -23,8 +27,12 @@ namespace APIPart.Controllers
         [Route("GetDrivers")]
 
         [HttpGet]
-        public DriverPaginationDto GetDrivers([FromQuery] ListRequestDto listRequestDto)
+        public async Task<ApiResponse> GetDriversAsync([FromQuery] ListRequestDto listRequestDto)
         {
+            if (!ModelState.IsValid)
+            {
+                return new ApiBadRequestResponse(ModelState);
+            }
             var searchWord = listRequestDto.SearchWord.ToLower();
 
             var query = _driverRepository.GetQueryable()
@@ -33,7 +41,7 @@ namespace APIPart.Controllers
                     c.Phone.ToLower().Contains(searchWord) ||
                     c.LicenseNumber.ToLower().Contains(searchWord)
                 );
-            var count = query.Count();
+            var count =await query.CountAsync();
             if (listRequestDto.SortingType == SortingType.asc)
             {
                 query = query.OrderBy(c => c.Name);
@@ -46,68 +54,133 @@ namespace APIPart.Controllers
             var pageSize = listRequestDto.PageSize;
 
             query = query.Skip(pageIndex * pageSize).Take(pageSize);
-            var drivers = query.ToList();
+            var drivers = await query.ToListAsync();
 
             var driverPaginationDto = _mapper.Map<DriverPaginationDto>(drivers);
             driverPaginationDto.Count = count;
-            return driverPaginationDto;
+            return new ApiOkResponse(driverPaginationDto);
         }
         [HttpGet]
-        public async Task<IEnumerable<DriverListDto>> GetList()
+        public async Task<ApiResponse> GetListAsync()
         {
-            var drivers = _driverRepository.
-                        GetAllAsync();
+            if (!ModelState.IsValid)
+            {
+                return new ApiBadRequestResponse(ModelState);
+            }
+            var drivers = await _driverRepository.GetAllAsync();
+      
+         
             IEnumerable<DriverListDto>? driverListDto = _mapper.Map<IEnumerable<DriverListDto>>(drivers);
-            return driverListDto;
+            return new ApiOkResponse(driverListDto);
         }
         [HttpGet("{id}")]
-        public DriverDto Get(Guid id)
+        public async Task<ApiResponse> GetAsync(Guid id)
         {
-            var driver = _driverRepository.GetByIdAsync(id);
-
+            if (!ModelState.IsValid)
+            {
+                return new ApiBadRequestResponse(ModelState);
+            }
+            var driver = await _driverRepository.GetByIdAsync(id);
+            if (driver == null)
+            {
+                return new ApiResponse(404, "driver not found with id " + id.ToString());
+            }
             DriverDto driverDto = _mapper.Map<DriverDto>(driver);
-            return driverDto;
+            return new ApiOkResponse(driverDto);
         }
         [HttpPost]
-        public CreateDriverDto Create(CreateDriverDto createDriverDto)
+        public async Task<ApiResponse> CreateAsync(CreateDriverDto createDriverDto)
         {
-            Driver toCreateDriver = _mapper.Map<Driver>(createDriverDto);
-            _driverRepository.AddAsync(toCreateDriver);
-            return createDriverDto;
+            if (!ModelState.IsValid)
+            {
+                return new ApiBadRequestResponse(ModelState);
+            }
+            bool HasReplacement = createDriverDto.ReplacementDriverId.HasValue;
+            if (HasReplacement)
+            {
+
+                var replacementDriver = await _driverRepository.IsExistAsync(createDriverDto.ReplacementDriverId.Value);
+                if (!replacementDriver)
+                {
+                    return new ApiResponse(400, "Invalid DriverId specified, no driver have this id");
+                }
+            }
+
+
+            Driver toCreateDriver =  _mapper.Map<Driver>(createDriverDto);
+
+
+            toCreateDriver.HasReplacement = HasReplacement;
+            try
+            {
+                var createdDriver = await _driverRepository.AddAsync(toCreateDriver);
+                var createdDriverDto = _mapper.Map<CarDTO>(createdDriver);
+                return new ApiOkResponse(createdDriverDto);
+            }
+
+            catch (Exception ex)
+            {
+
+                return new ApiResponse(400, ex.Message);
+            }
+
+
+           
         }
 
         [HttpPut("{id}")]
-        public UpdateDriverDto Update(Guid id, UpdateDriverDto updateDriverDto)
+        public async Task<ApiResponse> UpdateAsync(Guid id, UpdateDriverDto updateDriverDto)
         {
+            if (!ModelState.IsValid)
+            {
+                return new ApiBadRequestResponse(ModelState);
+            }
 
-            var driver = _driverRepository.GetByIdAsync(id);
+            var driver = await _driverRepository.GetByIdAsync(id);
             if (driver == null)
             {
-                return null;
+                return new ApiResponse(404, "Driver not found with id " + id.ToString());
             }
-            else
+            bool HasReplacement = updateDriverDto.ReplacementDriverId.HasValue;
+            if (HasReplacement)
             {
 
-                var newDriver = _mapper.Map<Driver>(updateDriverDto);
-                _driverRepository.UpdateAsync(id, newDriver);
-                return updateDriverDto;
+                var replacementDriver = await _driverRepository.IsExistAsync(updateDriverDto.ReplacementDriverId.Value);
+                if (!replacementDriver)
+                {
+                    return new ApiResponse(400, "Invalid replacement Driver id specified, no driver have this id");
+                }
             }
+            var newDriver = _mapper.Map<Driver>(updateDriverDto);
+            newDriver.HasReplacement = HasReplacement;
+            try { await _driverRepository.UpdateAsync(id, newDriver); }
 
+            catch (Exception ex)
+            {
+
+                return new ApiResponse(400, ex.Message);
+            }
+         
+                return new ApiOkResponse(newDriver);
 
         }
         [HttpDelete("{id}")]
-        public DriverDto Delete(Guid id)
+        public async Task<ApiResponse> DeleteAsync(Guid id)
         {
-            var driver = _driverRepository.GetByIdAsync(id);
-            if (driver == null)
+            if (!ModelState.IsValid)
             {
-                return null;
+                return new ApiBadRequestResponse(ModelState);
             }
-            _driverRepository.DeleteAsync(id);
+           
+            var driver = await _driverRepository.IsExistAsync(id);
+            if (!driver)
+            {
+                return new ApiResponse(404, "driver not found with id " + id.ToString());
+            }
+           await _driverRepository.DeleteAsync(id);
 
             DriverDto driverDto = _mapper.Map<DriverDto>(driver);
-
-            return driverDto;
+            return new ApiOkResponse("driver with id" + id + "is deleted");
         }
     }
 }
