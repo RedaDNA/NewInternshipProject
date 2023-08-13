@@ -1,41 +1,106 @@
-﻿/*using Core.Entities;
+﻿using Core.Entities;
 using Core.Interfaces;
+using Core.Interfaces.IServices;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace infrastructure.Services
 {
-    public class CarService
+    public class CarService : ICarService
     {
-        private readonly ICarRepository _repository;
+        public IUnitOfWork _unitOfWork;
 
-        public CarService(ICarRepository repository)
+
+        public CarService(IUnitOfWork unitOfWork)
         {
-            _repository = repository;
+            _unitOfWork = unitOfWork;
+        }
+        public async Task<Car> AddAsync(Car car)
+        {
+            await _unitOfWork.Cars.AddAsync(car);
+
+            return car;
         }
 
-        public IEnumerable<Car> GetAllCars()
+        public async Task<bool> DeleteAsync(Guid id)
         {
-            return _repository.GetAll();
+          
+                var car = await _unitOfWork.Cars.GetByIdAsync(id);
+                if (car== null)
+                  
+                        return false;
+                    
+                _unitOfWork.Cars.DeleteAsync(car.Id);
+                var result = _unitOfWork.Save();
+
+            return true;    
+                }
+            
+        
+        public async Task<IEnumerable<Car>> GetAllAsync()
+
+        {
+            return await _unitOfWork.Cars.GetAllAsync();
         }
 
-        public Car GetCarById(Guid id)
+     
+
+        public async Task< Car> GetByIdAsync(Guid id)
         {
-            return _repository.GetById(id);
+           
+                var car = await _unitOfWork.Cars.GetByIdAsync(id);
+                if (car != null)
+                {
+                    return car;
+                }
+
+            return null;
         }
 
-        public void AddCar(Car car)
-        {
-            _repository.Add(car);
-        }
+     
 
-        public void UpdateCar(Car car)
+        public async Task<bool> UpdateAsync(Guid id,Car car)
         {
-            _repository.Update(car);
-        }
+            if (car != null)
+            {
+                var toUpdateCar = await _unitOfWork.Cars.GetByIdAsync(id);
+                if (car == null)
+                {
+                    toUpdateCar.EngineCapacity = car.EngineCapacity;
+                    toUpdateCar.IsAvailable = car.IsAvailable;
+                    toUpdateCar.DailyFare = car.DailyFare;
+                    toUpdateCar.Color = car.Color;
 
-        public void DeleteCar(Car car)
+                    _unitOfWork.Cars.UpdateAsync(id,toUpdateCar);
+
+                    var result = _unitOfWork.Save();
+
+                    if (result > 0)
+                        return true;
+                    else
+                        return false;
+                }
+            }
+            return false;
+        }
+        public IQueryable<Car> GetQueryable()
+
         {
-            _repository.Delete(car);
+            return _unitOfWork.Cars.GetQueryable();
+        }
+        public async Task<bool> IsExistAsync(Guid id)
+        {
+            return await _unitOfWork.Cars.IsExistAsync(id);
+                
+                
+    
         }
     }
+
+
+
 }
-*/

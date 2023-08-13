@@ -1,6 +1,9 @@
 using Core.Entities;
 using Core.Interfaces;
+using Core.Interfaces.IServices;
 using infrastructure.Data;
+using infrastructure.ServiceExtension;
+using infrastructure.Services;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -21,6 +24,12 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<CarRentalContext>(options =>
     options.UseSqlServer("Server=localhost\\SQLEXPRESS01;Database=master;Trusted_Connection=True;TrustServerCertificate=True;"));
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+builder.Services.AddDIServices(builder.Configuration);
+
+builder.Services.AddScoped<ICarService, CarService>();
+builder.Services.AddScoped<IDriverService, DriverService>();
+builder.Services.AddScoped<ICustomerService, CustomerService>();
+
 
 
 //builder.Services.AddTransient<IGenericRepository<Car>, GenericRepository<Car>>();
