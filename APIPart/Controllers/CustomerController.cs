@@ -1,11 +1,10 @@
-﻿using APIPart.DTOs;
-using APIPart.DTOs.CustomerDtos;
+﻿using APIPart.DTOs.CustomerDtos;
+using APIPart.DTOs;
 using APIPart.ErrorHandling;
 using AutoMapper;
 using Core.Entities;
 using Core.enums;
-using Core.Interfaces;
-using Infrastructure.Repositories;
+using Core.Interfaces.IServices;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,15 +12,15 @@ namespace APIPart.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class CustomerController : Controller
+    public class CustomerControllerUOW : Controller
     {
-        private IGenericRepository<Customer> _customerRepository;
-
         private readonly IMapper _mapper;
-        public CustomerController(IGenericRepository<Customer> customerRepository, IMapper mapper)
+        private ICustomerService _customerService;
+
+        public CustomerControllerUOW(ICarService carService, IMapper mapper, ICustomerService customerService )
         {
-            _customerRepository = customerRepository;
             _mapper = mapper;
+            _customerService = customerService;
         }
         [Route("GetCustomers")]
         [HttpGet]
@@ -29,7 +28,7 @@ namespace APIPart.Controllers
         {
             var searchWord = listRequestDto.SearchWord.ToLower();
 
-            var query = _customerRepository.GetQueryable()
+            var query = _customerService.GetQueryable()
                 .Where(c =>
                     c.Name.ToLower().Contains(searchWord) ||
                     c.Phone.ToLower().Contains(searchWord) ||
@@ -58,7 +57,7 @@ namespace APIPart.Controllers
         [HttpGet]
         public async Task<ApiResponse> GetListAsync()
         {
-            var customers = await _customerRepository.GetAllAsync();
+            var customers = await _customerService.GetAllAsync();
 
             IEnumerable<CustomerListDto>? customerListDto = _mapper.Map<IEnumerable<CustomerListDto>>(customers);
             return new ApiOkResponse(customerListDto);
@@ -67,7 +66,7 @@ namespace APIPart.Controllers
         [HttpGet("{id}")]
         public async Task<ApiResponse> GetAsync(Guid id)
         {
-            var customer = await _customerRepository.GetByIdAsync(id);
+            var customer = await _customerService.GetByIdAsync(id);
 
             CustomerDto customerDto = _mapper.Map<CustomerDto>(customer);
             return new ApiOkResponse(customerDto);
@@ -77,14 +76,14 @@ namespace APIPart.Controllers
         public async Task<ApiResponse> CreateAsync(CreateCustomerDto createCustomerDto)
         {
             Customer toCreateCustomer = _mapper.Map<Customer>(createCustomerDto);
-            await _customerRepository.AddAsync(toCreateCustomer);
+            await _customerService.AddAsync(toCreateCustomer);
             return new ApiOkResponse(createCustomerDto);
         }
 
         [HttpPut("{id}")]
         public async Task<ApiResponse> UpdateAsync(Guid id, UpdateCustomerDto updateCustomerDto)
         {
-            var customer = await _customerRepository.GetByIdAsync(id);
+            var customer = await _customerService.GetByIdAsync(id);
             if (customer == null)
             {
                 return null;
@@ -92,8 +91,9 @@ namespace APIPart.Controllers
             else
             {
                 var newCustomer = _mapper.Map<Customer>(updateCustomerDto);
+                newCustomer.Id = id;
 
-                await _customerRepository.UpdateAsync(id, newCustomer);
+                await _customerService.UpdateAsync(id, newCustomer);
                 return new ApiOkResponse(updateCustomerDto);
             }
         }
@@ -101,12 +101,12 @@ namespace APIPart.Controllers
         [HttpDelete("{id}")]
         public async Task<ApiResponse> DeleteAsync(Guid id)
         {
-            var customer = await _customerRepository.GetByIdAsync(id);
+            var customer = await _customerService.GetByIdAsync(id);
             if (customer == null)
             {
                 return null;
             }
-            await _customerRepository.DeleteAsync(id);
+            await _customerService.DeleteAsync(id);
 
             CustomerDto customerDto = _mapper.Map<CustomerDto>(customer);
 

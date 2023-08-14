@@ -1,34 +1,32 @@
-﻿using AutoMapper;
+﻿using APIPart.DTOs;
+using APIPart.DTOs.CarDtos;
+using APIPart.ErrorHandling;
+using AutoMapper;
 using Core.Entities;
 using Core.enums;
 using Core.Interfaces;
-using Core.Models;
-using APIPart.DTOs.CarDtos;
-using Microsoft.AspNetCore.Cors.Infrastructure;
+using Core.Interfaces.IServices;
+using infrastructure.Services;
+using Infrastructure.Repositories;
 using Microsoft.AspNetCore.Mvc;
-using System.Linq;
-using APIPart.DTOs;
-using APIPart.ErrorHandling;
-using Azure.Core;
 using Microsoft.EntityFrameworkCore;
 
 namespace APIPart.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class CarController : Controller
+    public class CarControllerUOW : Controller
     {
-        private IGenericRepository<Car> _carRepository;
-
+        public readonly ICarService _carService;
         private readonly IMapper _mapper;
-        private IGenericRepository<Driver> _driverRepository;
-        public CarController(IGenericRepository<Car> carRepository, IMapper mapper, IGenericRepository<Driver> driverRepository)
-        {
-            _carRepository = carRepository;
-            _mapper = mapper;
-            _driverRepository = driverRepository;
-        }
+        private IDriverService _driverService;
 
+        public CarControllerUOW(ICarService carService, IMapper mapper, IDriverService driverService)
+        {
+            _carService = carService;
+            _mapper = mapper;
+            _driverService = driverService;
+        }
         [Route("GetCars")]
 
         [HttpGet]
@@ -39,31 +37,31 @@ namespace APIPart.Controllers
                 return new ApiBadRequestResponse(ModelState);
             }
             var searchWord = listRequestDto.SearchWord.ToLower();
-         
-          var query = _carRepository.GetQueryable()
-          .GroupJoin(
-              _driverRepository.GetQueryable(),
-              car => car.DriverId,
-              driver => driver.Id,
-              (car, drivers) => new { Car = car, Drivers = drivers.DefaultIfEmpty() }
-          )
-          .SelectMany(
-              x => x.Drivers,
-              (carResult, driver) => new { Car = carResult.Car, Driver = driver }
-          )
-          .Where(c =>
-              c.Car.Number.ToLower().Contains(searchWord) ||
-              c.Car.Type.ToLower().Contains(searchWord) ||
-              c.Car.Color.ToLower().Contains(searchWord) ||
-              c.Car.DailyFare.ToString().Contains(searchWord) ||
-              c.Car.HasDriver.ToString().ToLower().Contains(searchWord) ||
-              c.Car.IsAvailable.ToString().ToLower().Contains(searchWord) ||
-              (c.Driver != null && c.Driver.Name.ToLower().Contains(searchWord))
-          )
-          .Select(c => c.Car);
-          
-          
-            var count = await  query.CountAsync();
+
+            var query = _carService.GetQueryable()
+            .GroupJoin(
+                _driverService.GetQueryable(),
+                car => car.DriverId,
+                driver => driver.Id,
+                (car, drivers) => new { Car = car, Drivers = drivers.DefaultIfEmpty() }
+            )
+            .SelectMany(
+                x => x.Drivers,
+                (carResult, driver) => new { Car = carResult.Car, Driver = driver }
+            )
+            .Where(c =>
+                c.Car.Number.ToLower().Contains(searchWord) ||
+                c.Car.Type.ToLower().Contains(searchWord) ||
+                c.Car.Color.ToLower().Contains(searchWord) ||
+                c.Car.DailyFare.ToString().Contains(searchWord) ||
+                c.Car.HasDriver.ToString().ToLower().Contains(searchWord) ||
+                c.Car.IsAvailable.ToString().ToLower().Contains(searchWord) ||
+                (c.Driver != null && c.Driver.Name.ToLower().Contains(searchWord))
+            )
+            .Select(c => c.Car);
+
+
+            var count = await query.CountAsync();
             if (listRequestDto.SortingType == SortingType.asc)
             {
                 query = query.OrderBy(c => c.Number);
@@ -82,22 +80,19 @@ namespace APIPart.Controllers
             carPaginationDto.Count = count;
             return new ApiOkResponse(carPaginationDto); ;
         }
+
         [HttpGet]
-        public async Task<ApiResponse> GetListAsync()
+        public async Task<IActionResult> GetCarList()
         {
-            if (!ModelState.IsValid)
+            var carDetailsList = await _carService.GetAllAsync();
+            if (carDetailsList == null)
             {
-                return new ApiBadRequestResponse(ModelState);
+                return NotFound();
             }
-            var cars = await _carRepository.
-                        GetAllAsync();
-            if (cars == null)
-            {
-                return new ApiResponse(404, "No cars found");
-            }
-            IEnumerable<CarListDto>? carListDto = _mapper.Map<IEnumerable<CarListDto>>(cars);
-            return new ApiOkResponse(carListDto);
+            return Ok(carDetailsList);
         }
+
+
         [HttpGet("{id}")]
         public async Task<ApiResponse> GetAsync(Guid id)
         {
@@ -106,7 +101,7 @@ namespace APIPart.Controllers
                 return new ApiBadRequestResponse(ModelState);
             }
 
-            var car = await _carRepository.GetByIdAsync(id);
+            var car = await _carService.GetByIdAsync(id);
 
             if (car == null)
             {
@@ -119,6 +114,7 @@ namespace APIPart.Controllers
 
 
         }
+
         [HttpPost]
         public async Task<ApiResponse> CreateAsync(CreateCarDto createCarDto)
         {
@@ -129,8 +125,8 @@ namespace APIPart.Controllers
             bool HasDriver = createCarDto.DriverId.HasValue;
             if (HasDriver)
             {
-               
-                var driver = await _driverRepository.IsExistAsync(createCarDto.DriverId.Value);
+
+                var driver = await _driverService.IsExistAsync(createCarDto.DriverId.Value);
                 if (!driver)
                 {
                     return new ApiResponse(400, "Invalid DriverId specified, no driver have this id");
@@ -138,7 +134,9 @@ namespace APIPart.Controllers
             }
             Car toCreateCar = _mapper.Map<Car>(createCarDto);
             toCreateCar.HasDriver = HasDriver;
-            try {var createdCar = await _carRepository.AddAsync(toCreateCar);
+            try
+            {
+                var createdCar = await _carService.AddAsync(toCreateCar);
                 var createdCarDto = _mapper.Map<CarDTO>(createdCar);
                 return new ApiOkResponse(createdCarDto);
             }
@@ -148,11 +146,12 @@ namespace APIPart.Controllers
 
                 return new ApiResponse(400, ex.Message);
             }
-       
-           
+
+
 
         }
 
+      
         [HttpPut("{id}")]
         public async Task<ApiResponse> UpdateAsync(Guid id, UpdateCarDto updateCarDto)
         {
@@ -160,7 +159,7 @@ namespace APIPart.Controllers
             {
                 return new ApiBadRequestResponse(ModelState);
             }
-            var car = await _carRepository.GetByIdAsync(id);
+            var car = await _carService.GetByIdAsync(id);
             if (car == null)
             {
                 return new ApiResponse(404, "Car not found with id " + id.ToString());
@@ -169,16 +168,16 @@ namespace APIPart.Controllers
             if (HasDriver)
             {
 
-                var driver = await _driverRepository.IsExistAsync(updateCarDto.DriverId.Value);
-                if (!driver )
+                var driver = await _driverService.IsExistAsync(updateCarDto.DriverId.Value);
+                if (!driver)
                 {
                     return new ApiResponse(400, "Invalid DriverId specified, no driver have this id");
                 }
             }
             var newCar = _mapper.Map<Car>(updateCarDto);
             newCar.HasDriver = HasDriver;
-            newCar.Id= id;
-            try {  await _carRepository.UpdateAsync(id, newCar); }
+            newCar.Id = id;
+            try { await _carService.UpdateAsync(id, newCar); }
 
             catch (Exception ex)
             {
@@ -187,7 +186,8 @@ namespace APIPart.Controllers
             }
             return new ApiOkResponse(updateCarDto);
         }
-    
+
+
         [HttpDelete("{id}")]
         public async Task<ApiResponse> DeleteAsync(Guid id)
         {
@@ -195,159 +195,16 @@ namespace APIPart.Controllers
             {
                 return new ApiBadRequestResponse(ModelState);
             }
-            var car = await _carRepository.IsExistAsync(id);
+            var car = await _carService.IsExistAsync(id);
             if (!car)
             {
                 return new ApiResponse(404, "Car not found with id " + id.ToString());
             }
-            await _carRepository.DeleteAsync(id);
-            return new ApiOkResponse("car with id" + id +"is deleted");
+            await _carService.DeleteAsync(id);
+            return new ApiOkResponse("car with id" + id + "is deleted");
         }
 
 
-
-            /*
-            private readonly CarService _service;
-
-            public CarController(CarService service)
-            {
-                _service = service;
-            }
-
-            [HttpGet]
-            public IActionResult GetAll()
-            {
-                var cars = _service.
-                    GetAllCars().Select(c => new CarDTO
-                    {
-                        Id = c.Id,
-                        Number = c.Number,
-                        Type = c.Type,
-                        EngineCapacity = c.EngineCapacity,
-                        Color = c.Color,
-                        DailyFare = c.DailyFare,
-
-                        DriverId = c.DriverId
-                    });
-                return Ok(cars);
-            }
-
-            [HttpGet("{id}")]
-            public IActionResult GetById(Guid id)
-            {
-                var car = _service.GetCarById(id);
-                if (car == null)
-                {
-                    return NotFound();
-                }
-                var carDTO = new CarDTO
-                {
-                    Id = car.Id,
-                    Number = car.Number,
-                    Type = car.Type,
-                    EngineCapacity = car.EngineCapacity,
-                    Color = car.Color,
-                    DailyFare = car.DailyFare,
-
-                    DriverId = car.DriverId
-                };
-                return Ok(carDTO);
-            }
-
-            [HttpPost]
-            public IActionResult Create(CarDTO carDTO)
-            {
-                var car = new Car
-                {
-                    Number = carDTO.Number,
-                    Type = carDTO.Type,
-                    EngineCapacity = carDTO.EngineCapacity,
-                    Color = carDTO.Color,
-                    DailyFare = carDTO.DailyFare,
-
-                    DriverId = carDTO.DriverId
-                };
-                _service.AddCar(car);
-                return CreatedAtAction(nameof(GetById), new { id = car.Id }, car);
-            }
-
-            [HttpPut("{id}")]
-            public IActionResult Update(Guid id, CarDTO carDTO)
-            {
-                var car = _service.GetCarById(id);
-                if (car == null)
-                {
-                    return NotFound();
-                }
-                car.Number = carDTO.Number;
-                car.Type = carDTO.Type;
-                car.EngineCapacity = carDTO.EngineCapacity;
-                car.Color = carDTO.Color;
-                car.DailyFare = carDTO.DailyFare;
-
-                car.DriverId = carDTO.DriverId;
-                _service.UpdateCar(car);
-                return NoContent();
-            }
-
-            [HttpDelete("{id}")]
-            public IActionResult Delete(Guid id)
-            {
-                var car = _service.GetCarById(id);
-                if (car == null)
-                {
-                    return NotFound();
-                }
-                _service.DeleteCar(car);
-                return NoContent();
-            }
-            public IActionResult Index()
-            {
-                var cars = _service.GetAllCars().Select(c => new CarDTO
-                {
-                    Id = c.Id,
-                    Number = c.Number,
-                    Type = c.Type,
-                    EngineCapacity = c.EngineCapacity,
-                    Color = c.Color,
-                    DailyFare = c.DailyFare,
-                    DriverId = c.DriverId
-                }).ToList();
-
-                return NoContent();
-            }
-             /*
-            var car = _carRepository.GetById(id);
-            if (car == null)
-            {
-                return null;
-            }
-            car.Number = updateCarDto.Number;
-            car.Type = updateCarDto.Type;
-            car.EngineCapacity = updateCarDto.EngineCapacity;
-            car.Color = updateCarDto.Color;
-            car.DailyFare = updateCarDto.DailyFare;
-
-            car.DriverId = updateCarDto.DriverId;
-            _carRepository.Update(id,car);*/
-            /*
-            var car = new Car
-            {
-                Number = createCarDto.Number,
-                Type = createCarDto.Type,
-                EngineCapacity = createCarDto.EngineCapacity,
-                Color = createCarDto.Color,
-                DailyFare = createCarDto.DailyFare,
-
-                //DriverId = createCarDto.DriverId
-            };
-            _carRepository.Add(car);
-            CreateCarDto carDto = _mapper.Map<CreateCarDto>(car);
-            return carDto;
-            */
-
-        }
+    }
 }
-
-
 

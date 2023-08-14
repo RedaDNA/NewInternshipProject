@@ -183,15 +183,13 @@ namespace APIPart.Controllers
                 return new ApiBadRequestResponse(ModelState);
             }
            
-            var driver = await _rentalService.IsExistAsync(id);
-            if (!driver)
+            var IsRentalExist = await _rentalService.IsExistAsync(id);
+            if (!IsRentalExist)
             {
-                return new ApiResponse(404, "driver not found with id " + id.ToString());
+                return new ApiResponse(404, "rental not found with id " + id.ToString());
             }
            await _rentalService.DeleteAsync(id);
-
-            RentalDto driverDto = _mapper.Map<RentalDto>(driver);
-            return new ApiOkResponse("driver with id" + id + "is deleted");
+            return new ApiOkResponse("rental with id" + id + "is deleted");
         }
     }
 }

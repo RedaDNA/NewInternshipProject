@@ -30,11 +30,21 @@ namespace infrastructure.Services
         public async Task<bool> DeleteAsync(Guid id)
         {
 
+            try
+            {
+                await _unitOfWork.Rentals.DeleteAsync(id);
+                var result = _unitOfWork.Save();
 
-            _unitOfWork.Rentals.DeleteAsync(id);
-            var result = _unitOfWork.Save();
+            }
+            catch (Exception ex)
+            {
+                return (false);
 
-            return (result > 0);
+
+            }
+
+
+            return (false );
         }
 
 
