@@ -18,7 +18,15 @@ namespace Infrastructure.Repositories
         {
             return _context.Cars.AsEnumerable().Where(c =>c.IsAvailable ==true);
         }
-     
+
+        public async Task<bool> IsAvailableAsync(Guid id)
+        {
+            var car      = await _context.Set<Car>().FirstOrDefaultAsync(c => c.Id == id);
+
+
+            // Assuming there is a boolean property named IsAvailable in the Car entity
+            return car.IsAvailable;
+        }
     }
 }
     

@@ -9,6 +9,8 @@ using Core.Interfaces.IServices;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Core.Entities;
+using infrastructure.Services;
+using infrastructure.Migrations;
 
 namespace APIPart.Controllers
 {
@@ -18,13 +20,14 @@ namespace APIPart.Controllers
     {
         private readonly IMapper _mapper;
         private IDriverService _driverService;
+        private IRentalService _rentalService;
 
-        public DriverController(ICarService carService, IMapper mapper, IDriverService driverService)
+        public DriverController(ICarService carService, IMapper mapper, IDriverService driverService, IRentalService rentalService)
         {
             _mapper = mapper;
             _driverService = driverService;
+            _rentalService = rentalService;
         }
-        [Route("GetDrivers")]
 
         [HttpGet]
         public async Task<ApiResponse> GetDriversAsync([FromQuery] ListRequestDto listRequestDto)
@@ -60,19 +63,7 @@ namespace APIPart.Controllers
             driverPaginationDto.Count = count;
             return new ApiOkResponse(driverPaginationDto);
         }
-        [HttpGet]
-        public async Task<ApiResponse> GetListAsync()
-        {
-            if (!ModelState.IsValid)
-            {
-                return new ApiBadRequestResponse(ModelState);
-            }
-            var drivers = await _driverService.GetAllAsync();
-
-
-            IEnumerable<DriverListDto>? driverListDto = _mapper.Map<IEnumerable<DriverListDto>>(drivers);
-            return new ApiOkResponse(driverListDto);
-        }
+      
         [HttpGet("{id}")]
         public async Task<ApiResponse> GetAsync(Guid id)
         {
@@ -178,10 +169,26 @@ namespace APIPart.Controllers
             {
                 return new ApiResponse(404, "driver not found with id " + id.ToString());
             }
+            var driverUsedInRental = await _rentalService.IsDriverExistInAsync(id);
+            if (driverUsedInRental)
+            {
+                return new ApiResponse(404, "Cannot delete the driver, Driver is already used in rental record");
+
+
+            }
             await _driverService.DeleteAsync(id);
 
             DriverDto driverDto = _mapper.Map<DriverDto>(driver);
             return new ApiOkResponse("driver with id" + id + "is deleted");
         }
+
+
+
+
+     
+
+
+    
+
     }
 }

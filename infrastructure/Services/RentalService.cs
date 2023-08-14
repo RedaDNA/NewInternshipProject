@@ -21,9 +21,9 @@ namespace infrastructure.Services
         public async Task<Rental> AddAsync(Rental rental)
         {
             await _unitOfWork.Rentals.AddAsync(rental);
-           _unitOfWork.Save();
-          
-                
+            _unitOfWork.Save();
+
+
             return rental;
         }
 
@@ -44,7 +44,7 @@ namespace infrastructure.Services
             }
 
 
-            return (false );
+            return (false);
         }
 
 
@@ -73,9 +73,9 @@ namespace infrastructure.Services
         public async Task<bool> UpdateAsync(Guid id, Rental rental)
         {
 
-          
 
-         await   _unitOfWork.Rentals.UpdateAsync(id, rental);
+
+            await _unitOfWork.Rentals.UpdateAsync(id, rental);
 
             var result = _unitOfWork.Save();
 
@@ -98,6 +98,21 @@ namespace infrastructure.Services
 
 
 
+        }
+        Task<bool> IRentalService.IsCarExistInAsync(Guid carId)
+            {
+            return  _unitOfWork.Rentals.IsCarExistInAsync(carId);
+
+
+        }
+
+        public Task<bool> IsCustomerExistInAsync(Guid customerId)
+        {
+            return _unitOfWork.Rentals.IsCustomerExistInAsync(customerId);
+        }
+        public Task<bool> IsDriverExistInAsync(Guid driverId)
+        {
+            return _unitOfWork.Rentals.IsDriverExistInAsync(driverId);
         }
     }
 }

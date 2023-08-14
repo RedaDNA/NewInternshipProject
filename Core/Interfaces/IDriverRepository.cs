@@ -9,8 +9,10 @@ namespace Core.Interfaces
 {
     public interface IDriverRepository : IGenericRepository<Driver>
     {
-       
+
+        Task<bool> IsAvailableAsync(Guid id);
+
     }
-    
-    
+
+
 }

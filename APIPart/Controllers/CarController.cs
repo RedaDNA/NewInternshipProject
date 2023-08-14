@@ -8,6 +8,7 @@ using Core.Interfaces;
 using Core.Interfaces.IServices;
 using infrastructure.Services;
 using Infrastructure.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,25 +19,29 @@ namespace APIPart.Controllers
     public class CarController : Controller
     {
         public readonly ICarService _carService;
+        public readonly IRentalService _rentalService;
+
         private readonly IMapper _mapper;
         private IDriverService _driverService;
 
-        public CarController(ICarService carService, IMapper mapper, IDriverService driverService)
+        public CarController(ICarService carService, IMapper mapper, IDriverService driverService,IRentalService rentalService)
         {
             _carService = carService;
             _mapper = mapper;
+            _rentalService = rentalService;
             _driverService = driverService;
         }
         [Route("GetCars")]
 
         [HttpGet]
-        public async Task<ApiResponse> GetCarsAsync([FromQuery] ListRequestDto listRequestDto)
+        [Authorize]
+        public async Task<ApiResponse> GetCarsAsync([FromQuery] CarRequestDto carRequestDto)
         {
             if (!ModelState.IsValid)
             {
                 return new ApiBadRequestResponse(ModelState);
             }
-            var searchWord = listRequestDto.SearchWord.ToLower();
+            var searchWord = carRequestDto.SearchWord.ToLower();
 
             var query = _carService.GetQueryable()
             .GroupJoin(
@@ -62,16 +67,43 @@ namespace APIPart.Controllers
 
 
             var count = await query.CountAsync();
-            if (listRequestDto.SortingType == SortingType.asc)
+            var columnName = carRequestDto.SortingColumn;
+            switch (columnName)
             {
-                query = query.OrderBy(c => c.Number);
+                case 0:
+                    query = carRequestDto.SortingType == SortingType.asc
+                        ? query.OrderBy(c => c.Number)
+                        : query.OrderByDescending(c => c.Number);
+                    break;
+                case (CarSortingColumn)1:
+                    query = carRequestDto.SortingType == SortingType.asc
+                        ? query.OrderBy(c => c.Type)
+                        : query.OrderByDescending(c => c.Type);
+                    break;
+                case (CarSortingColumn)2:
+                    query = carRequestDto.SortingType == SortingType.asc
+                ? query.OrderBy(c => c.EngineCapacity)
+                : query.OrderByDescending(c => c.EngineCapacity);
+                    break;
+                case (CarSortingColumn)3:
+                    query = carRequestDto.SortingType == SortingType.asc
+                ? query.OrderBy(c => c.Color)
+                : query.OrderByDescending(c => c.Color);
+                    break;
+                case (CarSortingColumn)4:
+                    query = carRequestDto.SortingType == SortingType.asc
+                ? query.OrderBy(c => c.DailyFare)
+                : query.OrderByDescending(c => c.DailyFare);
+                    break;
+
+              
+                default:
+                    
+                    query = query.OrderBy(c => c.Number);
+                    break;
             }
-            else if (listRequestDto.SortingType == SortingType.desc)
-            {
-                query = query.OrderByDescending(c => c.Number);
-            }
-            var pageIndex = listRequestDto.PageNumber - 1;
-            var pageSize = listRequestDto.PageSize;
+            var pageIndex = carRequestDto.PageNumber - 1;
+            var pageSize = carRequestDto.PageSize;
 
             query = query.Skip(pageIndex * pageSize).Take(pageSize);
             var cars = await query.ToListAsync();
@@ -199,6 +231,13 @@ namespace APIPart.Controllers
             if (!car)
             {
                 return new ApiResponse(404, "Car not found with id " + id.ToString());
+            }
+            var carUsedInRental = await _rentalService.IsCarExistInAsync(id);
+            if(carUsedInRental)
+            {
+                return new ApiResponse(404, "Cannot delete the car, Car is already used in rental record" );
+
+
             }
             await _carService.DeleteAsync(id);
             return new ApiOkResponse("car with id" + id + "is deleted");

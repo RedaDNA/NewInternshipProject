@@ -9,5 +9,6 @@ namespace APIPart.DTOs
 
         public string? SearchWord { get; set; } = "";
         public SortingType? SortingType { get; set; }
+        public RentalSortingColumn? SortingColumn { get; set; }
     }
 }

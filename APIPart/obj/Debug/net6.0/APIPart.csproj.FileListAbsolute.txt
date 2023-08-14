@@ -96,3 +96,4 @@ C:\Users\reda\source\repos\NewInternshipProject\APIPart\bin\Debug\net6.0\System.
 C:\Users\reda\source\repos\NewInternshipProject\APIPart\bin\Debug\net6.0\System.Text.Encodings.Web.dll
 C:\Users\reda\source\repos\NewInternshipProject\APIPart\bin\Debug\net6.0\System.Text.Json.dll
 C:\Users\reda\source\repos\NewInternshipProject\APIPart\bin\Debug\net6.0\runtimes\browser\lib\net6.0\System.Text.Encodings.Web.dll
+C:\Users\reda\source\repos\NewInternshipProject\APIPart\bin\Debug\net6.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll

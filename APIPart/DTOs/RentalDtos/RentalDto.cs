@@ -16,5 +16,6 @@ namespace APIPart.DTOs.RentalDtos
 
         public decimal TotalFare { get; set; }
         public RentalStatus Status { get; set; }
+       
     }
 }

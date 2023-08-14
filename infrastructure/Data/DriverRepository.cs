@@ -1,6 +1,7 @@
 ﻿using Core.Entities;
 using Core.Interfaces;
 using Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,8 +18,15 @@ namespace infrastructure.Data
             _context = context;
 
         }
-       
 
+        public async Task<bool> IsAvailableAsync(Guid id)
+        {
+            var driver = await _context.Set<Driver>().FirstOrDefaultAsync(d => d.Id == id);
+            return driver.IsAvailable;
+        }
+
+
+       
     }
    
 }

@@ -17,5 +17,7 @@ namespace Core.Interfaces.IServices
         IQueryable<Driver> GetQueryable();
 
         Task<bool> IsExistAsync(Guid id);
+        Task<bool> IsAvailableAsync(Guid id);
+
     }
 }

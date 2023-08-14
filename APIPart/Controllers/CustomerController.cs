@@ -7,6 +7,7 @@ using Core.enums;
 using Core.Interfaces.IServices;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using infrastructure.Services;
 
 namespace APIPart.Controllers
 {
@@ -16,11 +17,13 @@ namespace APIPart.Controllers
     {
         private readonly IMapper _mapper;
         private ICustomerService _customerService;
+        private readonly IRentalService _rentalService;
 
-        public CustomerController(ICarService carService, IMapper mapper, ICustomerService customerService )
+        public CustomerController(ICarService carService, IMapper mapper, ICustomerService customerService, IRentalService rentalService )
         {
             _mapper = mapper;
             _customerService = customerService;
+            _rentalService = rentalService;
         }
         [Route("GetCustomers")]
         [HttpGet]
@@ -105,6 +108,13 @@ namespace APIPart.Controllers
             if (customer == null)
             {
                 return null;
+            }
+            var customerUsedInRental = await _rentalService.IsCustomerExistInAsync(id);
+            if (customerUsedInRental)
+            {
+                return new ApiResponse(404, "Cannot delete the Customer, Customer is already used in rental record");
+
+
             }
             await _customerService.DeleteAsync(id);
 

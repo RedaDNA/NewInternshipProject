@@ -88,6 +88,11 @@ namespace infrastructure.Services
                 
     
         }
+
+        public async  Task<bool> IsAvailableAsync(Guid id)
+        {
+            return await _unitOfWork.Cars.IsAvailableAsync(id);
+        }
     }
 
 

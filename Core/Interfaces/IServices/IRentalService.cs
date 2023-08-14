@@ -17,5 +17,8 @@ namespace Core.Interfaces.IServices
         IQueryable<Rental> GetQueryable();
 
         Task<bool> IsExistAsync(Guid id);
+        Task<bool> IsCarExistInAsync(Guid carId);
+        Task<bool> IsCustomerExistInAsync(Guid customerId);
+        Task<bool> IsDriverExistInAsync(Guid id);
     }
 }

@@ -9,5 +9,9 @@ namespace Core.Interfaces
 {
     public interface IRentalRepository : IGenericRepository<Rental>
     {
+
+      public  Task<bool>  IsCarExistInAsync(Guid id);
+        public Task<bool> IsCustomerExistInAsync(Guid customerId);
+        public Task<bool> IsDriverExistInAsync(Guid driverId);
     }
 }

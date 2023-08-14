@@ -14,5 +14,10 @@ namespace APIPart.DTOs.RentalDtos
 
         public decimal TotalFare { get; set; }
         public RentalStatus Status { get; set; }
+        public string CarColor { get; set; }
+        public string CarType { get; set; }
+        public string CustomerName { get; set; }
+        public string DriverName { get; set; }
+        public string CarNumber { get; internal set; }
     }
 }

@@ -19,6 +19,8 @@ namespace Core.Interfaces.IServices
         IQueryable<Car> GetQueryable();
 
         Task<bool> IsExistAsync(Guid id);
+        Task<bool> IsAvailableAsync(Guid id);
+
 
     }
 }
