@@ -21,6 +21,8 @@ namespace infrastructure.Services
         public async Task<Driver> AddAsync(Driver driver)
         {
             await _unitOfWork.Drivers.AddAsync(driver);
+            _unitOfWork.Save();
+
 
             return driver;
         }
@@ -64,17 +66,9 @@ namespace infrastructure.Services
 
         public async Task<bool> UpdateAsync(Guid id, Driver driver)
         {
-            if (driver != null)
-            {
-                var toUpdateDriver = await _unitOfWork.Drivers.GetByIdAsync(id);
-                if (driver == null)
-                {
-                    toUpdateDriver.LicenseNumber = driver.LicenseNumber ;
-                    toUpdateDriver.IsAvailable = driver.IsAvailable;
-                    toUpdateDriver.Name = driver.Name;
-                    toUpdateDriver.Phone = driver.Phone;
-
-                    _unitOfWork.Drivers.UpdateAsync(id, toUpdateDriver);
+              var toUpdateDriver = await _unitOfWork.Drivers.IsExistAsync(id);
+      
+                    _unitOfWork.Drivers.UpdateAsync(id, driver);
 
                     var result = _unitOfWork.Save();
 
@@ -82,9 +76,8 @@ namespace infrastructure.Services
                         return true;
                     else
                         return false;
-                }
-            }
-            return false;
+            
+           
         }
         public IQueryable<Driver> GetQueryable()
 

@@ -22,22 +22,18 @@ namespace infrastructure.Services
         public async Task<Car> AddAsync(Car car)
         {
             await _unitOfWork.Cars.AddAsync(car);
-
+            _unitOfWork.Save();
             return car;
         }
 
         public async Task<bool> DeleteAsync(Guid id)
         {
           
-                var car = await _unitOfWork.Cars.GetByIdAsync(id);
-                if (car== null)
-                  
-                        return false;
                     
-                _unitOfWork.Cars.DeleteAsync(car.Id);
+                _unitOfWork.Cars.DeleteAsync(id);
                 var result = _unitOfWork.Save();
 
-            return true;    
+            return (result>0);    
                 }
             
         
@@ -65,17 +61,10 @@ namespace infrastructure.Services
 
         public async Task<bool> UpdateAsync(Guid id,Car car)
         {
-            if (car != null)
-            {
+            
                 var toUpdateCar = await _unitOfWork.Cars.GetByIdAsync(id);
-                if (car == null)
-                {
-                    toUpdateCar.EngineCapacity = car.EngineCapacity;
-                    toUpdateCar.IsAvailable = car.IsAvailable;
-                    toUpdateCar.DailyFare = car.DailyFare;
-                    toUpdateCar.Color = car.Color;
-
-                    _unitOfWork.Cars.UpdateAsync(id,toUpdateCar);
+              
+                    _unitOfWork.Cars.UpdateAsync(id,car);
 
                     var result = _unitOfWork.Save();
 
@@ -83,10 +72,10 @@ namespace infrastructure.Services
                         return true;
                     else
                         return false;
-                }
+               
             }
-            return false;
-        }
+        
+        
         public IQueryable<Car> GetQueryable()
 
         {

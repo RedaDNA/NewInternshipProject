@@ -5,7 +5,6 @@ using Core.Entities;
 using Core.enums;
 using Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using APIPart.DTOs.CarDtos;
 using APIPart.ErrorHandling;
 using Microsoft.EntityFrameworkCore;
 using Infrastructure.Repositories;
@@ -114,7 +113,7 @@ namespace APIPart.Controllers
             try
             {
                 var createdDriver = await _driverRepository.AddAsync(toCreateDriver);
-                var createdDriverDto = _mapper.Map<CarDTO>(createdDriver);
+                var createdDriverDto = _mapper.Map<DriverDto>(createdDriver);
                 return new ApiOkResponse(createdDriverDto);
             }
 

@@ -20,9 +20,10 @@ namespace infrastructure.Services
         }
         public async Task<Customer> AddAsync(Customer customer)
         {
-            await _unitOfWork.Customers.AddAsync(customer);
+          var addedCustomer=  await _unitOfWork.Customers.AddAsync(customer);
+            _unitOfWork.Save();
 
-            return customer;
+            return addedCustomer;
         }
 
         public async Task<bool> DeleteAsync(Guid id)
@@ -64,17 +65,12 @@ namespace infrastructure.Services
 
         public async Task<bool> UpdateAsync(Guid id, Customer customer)
         {
-            if (customer != null)
-            {
+           
+            
                 var toUpdateCustomer = await _unitOfWork.Customers.GetByIdAsync(id);
-                if (customer == null)
-                {
-                    toUpdateCustomer.Email = customer.Email;
-                    toUpdateCustomer.Phone = customer.Phone;
-                    toUpdateCustomer.Name = customer.Name;
-      
+              
 
-                    _unitOfWork.Customers.UpdateAsync(id, toUpdateCustomer);
+                    _unitOfWork.Customers.UpdateAsync(id, customer);
 
                     var result = _unitOfWork.Save();
 
@@ -82,9 +78,7 @@ namespace infrastructure.Services
                         return true;
                     else
                         return false;
-                }
-            }
-            return false;
+         
         }
         public IQueryable<Customer> GetQueryable()
 

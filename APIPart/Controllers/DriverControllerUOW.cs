@@ -114,7 +114,7 @@ namespace APIPart.Controllers
             try
             {
                 var createdDriver = await _driverService.AddAsync(toCreateDriver);
-                var createdDriverDto = _mapper.Map<CarDTO>(createdDriver);
+                var createdDriverDto = _mapper.Map<DriverDto>(createdDriver);
                 return new ApiOkResponse(createdDriverDto);
             }
 
@@ -153,6 +153,7 @@ namespace APIPart.Controllers
             }
             var newDriver = _mapper.Map<Driver>(updateDriverDto);
             newDriver.HasReplacement = HasReplacement;
+            newDriver.Id = id;
             try { await _driverService.UpdateAsync(id, newDriver); }
 
             catch (Exception ex)

@@ -44,13 +44,13 @@ namespace Infrastructure.Data
                 .HasOne(r => r.Car)
                 .WithMany(c => c.Rentals)
                 .HasForeignKey(r => r.CarId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Restrict).IsRequired(true); ;
 
             modelBuilder.Entity<Rental>()
                 .HasOne(r => r.Customer)
                 .WithMany(c => c.Rentals)
                 .HasForeignKey(r => r.CustomerId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Restrict).IsRequired(true); ;
 
             modelBuilder.Entity<Driver>()
           .HasOne(d => d.ReplacementDriver)

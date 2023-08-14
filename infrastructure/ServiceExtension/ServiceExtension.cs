@@ -26,6 +26,8 @@ namespace infrastructure.ServiceExtension
             services.AddScoped<ICustomerRepository, CustomerRepository>();
 
             services.AddScoped<IDriverRepository, DriverRepository>();
+            services.AddScoped<IRentalRepository, RentalRepository>();
+
 
 
             return services;

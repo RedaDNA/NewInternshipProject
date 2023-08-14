@@ -17,17 +17,19 @@ namespace infrastructure.Data
         public ICustomerRepository Customers { get; }
 
         public IDriverRepository  Drivers{ get; }
+        public IRentalRepository Rentals { get; }
 
         public UnitOfWork(CarRentalContext context,
                             ICarRepository carRepository,
-                         ICustomerRepository customerRepository   , IDriverRepository driverRepository
+                         ICustomerRepository customerRepository   , IDriverRepository driverRepository,IRentalRepository rentalRepository
                             )
         {
             _context = context;
             Cars = carRepository;
             Drivers = driverRepository;
             Customers = customerRepository;
-        }
+            Rentals
+= rentalRepository;        }
         public int Save()
         {
             return _context.SaveChanges();

@@ -91,6 +91,8 @@ namespace APIPart.Controllers
             else
             {
                 var newCustomer = _mapper.Map<Customer>(updateCustomerDto);
+                newCustomer.Id = id;
+
                 await _customerService.UpdateAsync(id, newCustomer);
                 return new ApiOkResponse(updateCustomerDto);
             }

@@ -36,19 +36,22 @@ namespace infrastructure.Data
         }
         public async Task<bool> IsExistAsync(Guid id) 
         {
-            return await _context.Set<T>().AnyAsync(c => c.Id == id);
+             
+                
+                var x =await _context.Set<T>().AnyAsync(c => c.Id == id);
+            return x;
         }
         public async Task<T> AddAsync(T entity)
         {
              _context.Set<T>().Add(entity);
 
-         await   _context.SaveChangesAsync();
+       //  await   _context.SaveChangesAsync();
             return entity;
         }
 
         public async Task<bool> UpdateAsync(Guid id,T entity)
         {
-            var oldEntity= await _context.Set<T>().FirstOrDefaultAsync(c => c.Id == id);
+            var oldEntity= await _context.Set<T>().FindAsync(id);
             if (oldEntity == null)
             {
                 return false;
@@ -57,7 +60,7 @@ namespace infrastructure.Data
             {
               
                 _context.Update(oldEntity).CurrentValues.SetValues(entity); ;
-              await  _context.SaveChangesAsync();
+          //    await  _context.SaveChangesAsync();
                 return true;
             }
         }
@@ -65,6 +68,8 @@ namespace infrastructure.Data
         public async Task<bool> DeleteAsync(Guid id)
         {
             var toRemoveEntity = await _context.Set<T>().FirstOrDefaultAsync(c => c.Id == id);
+
+     
             if (toRemoveEntity == null)
             {
                 return false;
@@ -72,7 +77,7 @@ namespace infrastructure.Data
             else
             {
                 _context.Remove(toRemoveEntity);
-                await _context.SaveChangesAsync();
+    //            await _context.SaveChangesAsync();
                 return true;
             }
           

@@ -29,6 +29,7 @@ builder.Services.AddDIServices(builder.Configuration);
 builder.Services.AddScoped<ICarService, CarService>();
 builder.Services.AddScoped<IDriverService, DriverService>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
+builder.Services.AddScoped<IRentalService, RentalService>();
 
 
 
