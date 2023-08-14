@@ -12,12 +12,12 @@ namespace APIPart.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class CustomerControllerUOW : Controller
+    public class CustomerController : Controller
     {
         private readonly IMapper _mapper;
         private ICustomerService _customerService;
 
-        public CustomerControllerUOW(ICarService carService, IMapper mapper, ICustomerService customerService )
+        public CustomerController(ICarService carService, IMapper mapper, ICustomerService customerService )
         {
             _mapper = mapper;
             _customerService = customerService;

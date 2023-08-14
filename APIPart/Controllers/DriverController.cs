@@ -14,12 +14,12 @@ namespace APIPart.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class DriverControllerUOW : Controller
+    public class DriverController : Controller
     {
         private readonly IMapper _mapper;
         private IDriverService _driverService;
 
-        public DriverControllerUOW(ICarService carService, IMapper mapper, IDriverService driverService)
+        public DriverController(ICarService carService, IMapper mapper, IDriverService driverService)
         {
             _mapper = mapper;
             _driverService = driverService;
