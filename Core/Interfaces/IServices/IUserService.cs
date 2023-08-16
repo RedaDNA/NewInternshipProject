@@ -19,5 +19,6 @@ namespace Core.Interfaces.IServices
         Task<bool> IsExistAsync(Guid id);
 
         Task<bool> IsExistByUsernamePasswordAsync(String username, String password);
+        Task<bool> UsernameExistsAsync(string userName);
     }
 }

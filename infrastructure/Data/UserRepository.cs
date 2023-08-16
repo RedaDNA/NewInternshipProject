@@ -23,5 +23,11 @@ namespace infrastructure.Data
         {
             return  await _context.Set<User>().AnyAsync(u => u.UserName == username && u.Password == password);
         }
+
+        public async Task<bool> UsernameExistsAsync(string username)
+        {
+            return await _context.Set<User>().AnyAsync(u => u.UserName == username);
+
+        }
     }
 }

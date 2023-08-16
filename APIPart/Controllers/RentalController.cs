@@ -234,7 +234,14 @@ namespace APIPart.Controllers
             {
                 return new ApiBadRequestResponse(ModelState);
             }
-
+            if (updateRentalDto.StartDate >= updateRentalDto.EndDate)
+            {
+                return new ApiResponse(400, "Invalid date range. The StartDate must be before the EndDate.");
+            }
+            if (updateRentalDto.StartDate <= DateTime.Now)
+            {
+                return new ApiResponse(400, "Invalid StartDate. The StartDate must be after the current date.");
+            }
             var carExistence = await _carService.IsExistAsync(updateRentalDto.CarId);
             if (!carExistence)
             {
@@ -250,7 +257,14 @@ namespace APIPart.Controllers
             {
                 return new ApiResponse(400, "Invalid customer id specified, no customer have this id");
             }
-            
+            var carIsAvailable = await _carService.IsAvailableAsync(updateRentalDto.CarId);
+            if (!carIsAvailable)
+            {
+                return new ApiResponse(400, "Car is not available for renting");
+            }
+            var availableDriverId = await GetAvailableDriver(updateRentalDto.DriverId.Value);
+
+            updateRentalDto.DriverId = availableDriverId;
             var newRental = _mapper.Map<Rental>(updateRentalDto);
             newRental.Id = id;
             try { await _rentalService.UpdateAsync(id, newRental); }

@@ -30,13 +30,14 @@ namespace APIPart.Controllers
         }
         [AllowAnonymous]
         [HttpPost]
-        public async IActionResult Auth(AuthUserDto authUserDto)
+        public async Task<ApiResponse> Auth(AuthUserDto authUserDto)
         {
 
-            IActionResult response = Unauthorized();
+         //   IActionResult response = Unauthorized();
+           // ApiResponse resonse1 = response as ApiResponse;
             if (!ModelState.IsValid)
             {
-                return Ok(ModelState);
+                return new  ApiOkResponse(ModelState);
             }
             var userExists = await _userService.IsExistByUsernamePasswordAsync(authUserDto.UserName, authUserDto.Password);
                 if(userExists)
@@ -67,10 +68,10 @@ new Claim(JwtRegisteredClaimNames.Email, authUserDto.UserName),
                 var tokenHandler = new JwtSecurityTokenHandler();
                 var token = tokenHandler.CreateToken(tokenDescriptor);
                 var jwtToken = tokenHandler.WriteToken(token);
-                return Ok(jwtToken);
+                return new ApiOkResponse(jwtToken);
             }
 
-            return response;
+            return new ApiResponse(401,"UnAuthorized"); 
 
         }
 
@@ -81,8 +82,13 @@ new Claim(JwtRegisteredClaimNames.Email, authUserDto.UserName),
             {
                 return new ApiBadRequestResponse(ModelState);
             }
+            bool usernameExists = await _userService.UsernameExistsAsync(signUpUserDto.UserName);
+            if (usernameExists) {
 
-            User toCreateUser = _mapper.Map<User>(signUpUserDto);
+                ModelState.AddModelError("UserName", "Username is already taken");
+                return new ApiBadRequestResponse(ModelState);
+            }
+                User toCreateUser = _mapper.Map<User>(signUpUserDto);
             try
             {
                 var createdUser = await _userService.AddAsync(toCreateUser);

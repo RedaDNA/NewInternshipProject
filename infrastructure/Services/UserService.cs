@@ -99,7 +99,10 @@ namespace infrastructure.Services
             return await _unitOfWork.Users.IsExistByUsernamePasswordAsync( username,  password);
         }
 
-       
+        public async Task<bool> UsernameExistsAsync(string username)
+        {
+            return await _unitOfWork.Users.UsernameExistsAsync(username);
+        }
     }
 
 

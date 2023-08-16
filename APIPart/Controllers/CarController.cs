@@ -113,17 +113,7 @@ namespace APIPart.Controllers
             return new ApiOkResponse(carPaginationDto); ;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetCarList()
-        {
-            var carDetailsList = await _carService.GetAllAsync();
-            if (carDetailsList == null)
-            {
-                return NotFound();
-            }
-            return Ok(carDetailsList);
-        }
-
+       
 
         [HttpGet("{id}")]
         public async Task<ApiResponse> GetAsync(Guid id)

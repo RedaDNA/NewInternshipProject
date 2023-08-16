@@ -10,5 +10,6 @@ namespace Core.Interfaces
     public interface IUserRepository :  IGenericRepository<User> 
     {
         Task<bool> IsExistByUsernamePasswordAsync(String username, String password);
+        Task<bool> UsernameExistsAsync(String  username);
     }
 }
