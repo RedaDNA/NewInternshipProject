@@ -11,7 +11,9 @@ namespace Core.Interfaces
         ICarRepository Cars { get; }
        ICustomerRepository Customers { get; }
         IDriverRepository Drivers { get; }
-        IRentalRepository Rentals { get; }  
+        IRentalRepository Rentals { get; }
+        IUserRepository Users { get; }
+
         int Save();
     }
 }

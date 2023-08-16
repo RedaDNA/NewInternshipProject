@@ -7,15 +7,21 @@ using System.Threading.Tasks;
 
 namespace Core.Entities
 {
-    public class User 
+    public class User : BaseEntity
     {
         public string UserName { get; set; }
         public string Password { get; set; }
-        public  User(string username,string password)
-        {
-            UserName= username;
-                Password=password;
+        public string Phone { get; set; }
 
-        }
+        public string Email { get; set; }
+
+
+
+        /*    public  User(string username,string password)
+            {
+                UserName= username;
+                    Password=password;
+
+            }*/
     }
 }
