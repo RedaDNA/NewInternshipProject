@@ -109,5 +109,8 @@ app.UseAuthorization();
 IConfiguration configuration = app.Configuration;
 IWebHostEnvironment environment = app.Environment;
 app.MapControllers();
+builder.Services.AddMemoryCache();
+builder.Services.AddDistributedMemoryCache();
+
 
 app.Run();
