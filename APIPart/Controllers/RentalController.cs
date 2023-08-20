@@ -273,7 +273,7 @@ namespace APIPart.Controllers
                 return new ApiResponse(400, "Invalid driver id specified, no driver have this id");
             }
             }
-            var customerExistence = await _customerService    .IsExistAsync(updateRentalDto.CustomerId);
+            var customerExistence = await _customerService.IsExistAsync(updateRentalDto.CustomerId);
             if (!customerExistence)
             {
                 return new ApiResponse(400, "Invalid customer id specified, no customer have this id");
