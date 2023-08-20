@@ -11,6 +11,7 @@ using Infrastructure.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
+using System.Runtime.ConstrainedExecution;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace APIPart.Controllers
@@ -77,8 +78,14 @@ namespace APIPart.Controllers
 
             query = query.Skip(pageIndex * pageSize).Take(pageSize);
             var rentals = await query.ToListAsync();
-
+            var rentalListDtos = _mapper.Map<List<RentalListDto>>(rentals);
             var rentalPaginationDto = new RentalPaginationDto
+            {
+                Count = count,
+                RentalList = rentalListDtos
+            };
+
+           /* var rentalPaginationDto = new RentalPaginationDto
             {
                 Count = count,
                 RentalList = rentals.Select(r => new RentalListDto
@@ -96,7 +103,7 @@ namespace APIPart.Controllers
                     DriverId = r.Driver.Id,
                     DriverName = r.Driver.Name
                 }).ToList()
-            };
+            };*/
             var columnName = listRequestDto.SortingColumn;
             switch (columnName)
             {
@@ -186,30 +193,42 @@ namespace APIPart.Controllers
             {
                 return new ApiResponse(400, "Invalid StartDate. The StartDate must be after the current date.");
             }
-            var carExistence = await _carService.IsExistAsync(createRentalDto.CarId.Value);
+            var carExistence = await _carService.IsExistAsync(createRentalDto.CarId);
                 if (!carExistence)
                 {
                     return new ApiResponse(400, "Invalid car id specified, no car have this id");
                 }
-            var driverExistence = await _driverService.IsExistAsync(createRentalDto.DriverId.Value);
-            if (!driverExistence)
+
+            if (createRentalDto.DriverId != null)
             {
-                return new ApiResponse(400, "Invalid driver id specified, no driver have this id");
+
+                var driverExistence = await _driverService.IsExistAsync(createRentalDto.DriverId.Value);
+                if (!driverExistence)
+                {
+                    return new ApiResponse(400, "Invalid driver id specified, no driver have this id");
+                }
+             
+              
+                var availableDriverId = await GetAvailableDriver(createRentalDto.DriverId.Value);
+
+                createRentalDto.DriverId = availableDriverId;
             }
-            var customerExistence = await _customerService.IsExistAsync(createRentalDto.CustomerId. Value);
+            var customerExistence = await _customerService.IsExistAsync(createRentalDto.CustomerId);
             if (!customerExistence)
             {
                 return new ApiResponse(400, "Invalid customer id specified, no customer have this id");
             }
-            var carIsAvailable = await _carService.IsAvailableAsync(createRentalDto.CarId.Value);
+            var carIsAvailable = await _carService.IsAvailableAsync(createRentalDto.CarId);
             if (!carIsAvailable)
             {
                 return new ApiResponse(400, "Car is not available for renting");
             }
-              var availableDriverId =await GetAvailableDriver(createRentalDto.DriverId.Value);
-           
-             createRentalDto.DriverId = availableDriverId;
+            if (createRentalDto.StartDate.Date == DateTime.Now.Date)
+            {
+                _carService.ChangeStatusToNotAvailable(createRentalDto.CarId);
+            }
             Rental toCreateRental =  _mapper.Map<Rental>(createRentalDto);
+         
             try
             {
                 var createdRental = await   _rentalService.AddAsync(toCreateRental);
@@ -247,10 +266,12 @@ namespace APIPart.Controllers
             {
                 return new ApiResponse(400, "Invalid car id specified, no car have this id");
             }
+            if(updateRentalDto.DriverId != null) { 
             var driverExistence = await _driverService.IsExistAsync(updateRentalDto.DriverId.Value);
             if (!driverExistence)
             {
                 return new ApiResponse(400, "Invalid driver id specified, no driver have this id");
+            }
             }
             var customerExistence = await _customerService    .IsExistAsync(updateRentalDto.CustomerId);
             if (!customerExistence)
@@ -262,9 +283,14 @@ namespace APIPart.Controllers
             {
                 return new ApiResponse(400, "Car is not available for renting");
             }
+            if (updateRentalDto.StartDate.Date == DateTime.Now.Date)
+            {
+                _carService.ChangeStatusToNotAvailable(updateRentalDto.CarId);
+            }
             var availableDriverId = await GetAvailableDriver(updateRentalDto.DriverId.Value);
 
             updateRentalDto.DriverId = availableDriverId;
+        
             var newRental = _mapper.Map<Rental>(updateRentalDto);
             newRental.Id = id;
             try { await _rentalService.UpdateAsync(id, newRental); }

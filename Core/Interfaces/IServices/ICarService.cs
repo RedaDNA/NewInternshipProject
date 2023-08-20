@@ -17,7 +17,7 @@ namespace Core.Interfaces.IServices
         Task<bool> UpdateAsync(Guid id, Car car);
         Task<bool> DeleteAsync(Guid id);
         IQueryable<Car> GetQueryable();
-
+         void ChangeStatusToNotAvailable(Guid id);
         Task<bool> IsExistAsync(Guid id);
         Task<bool> IsAvailableAsync(Guid id);
 

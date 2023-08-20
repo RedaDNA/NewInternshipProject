@@ -25,7 +25,13 @@ namespace infrastructure.Services
             _unitOfWork.Save();
             return car;
         }
-
+        public async void ChangeStatusToNotAvailable(Guid id)
+        {
+          var car=  await _unitOfWork.Cars.GetByIdAsync(id);
+            car.IsAvailable = false;
+          //  _unitOfWork.Save();
+          //  return car.IsAvailable;
+        }
         public async Task<bool> DeleteAsync(Guid id)
         {
           

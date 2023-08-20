@@ -113,9 +113,11 @@ namespace APIPart.Controllers
             return new ApiOkResponse(carPaginationDto); ;
         }
 
-       
 
-        [HttpGet("{id}")]
+       
+      
+
+            [HttpGet("{id}")]
         public async Task<ApiResponse> GetAsync(Guid id)
         {
             if (!ModelState.IsValid)
