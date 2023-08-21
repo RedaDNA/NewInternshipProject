@@ -8,11 +8,13 @@ namespace APIPart.ErrorHandling
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string Message { get; }
-
-        public ApiResponse(int statusCode, string message = null)
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public IEnumerable<string> Errors { get; }
+        public ApiResponse(int statusCode, string message = null, IEnumerable<string> errors =null)
         {
             StatusCode = statusCode;
             Message = message ?? GetDefaultMessageForStatusCode(statusCode);
+            Errors = errors;
         }
 
         private static string GetDefaultMessageForStatusCode(int statusCode)

@@ -1,0 +1,17 @@
+C:\Users\reda\source\repos\NewInternshipProject\infrastructure\bin\Debug\net7.0\infrastructure.deps.json
+C:\Users\reda\source\repos\NewInternshipProject\infrastructure\bin\Debug\net7.0\infrastructure.runtimeconfig.json
+C:\Users\reda\source\repos\NewInternshipProject\infrastructure\bin\Debug\net7.0\infrastructure.dll
+C:\Users\reda\source\repos\NewInternshipProject\infrastructure\bin\Debug\net7.0\infrastructure.pdb
+C:\Users\reda\source\repos\NewInternshipProject\infrastructure\bin\Debug\net7.0\Core.dll
+C:\Users\reda\source\repos\NewInternshipProject\infrastructure\bin\Debug\net7.0\Core.pdb
+C:\Users\reda\source\repos\NewInternshipProject\infrastructure\obj\Debug\net7.0\infrastructure.csproj.AssemblyReference.cache
+C:\Users\reda\source\repos\NewInternshipProject\infrastructure\obj\Debug\net7.0\infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\reda\source\repos\NewInternshipProject\infrastructure\obj\Debug\net7.0\infrastructure.AssemblyInfoInputs.cache
+C:\Users\reda\source\repos\NewInternshipProject\infrastructure\obj\Debug\net7.0\infrastructure.AssemblyInfo.cs
+C:\Users\reda\source\repos\NewInternshipProject\infrastructure\obj\Debug\net7.0\infrastructure.csproj.CoreCompileInputs.cache
+C:\Users\reda\source\repos\NewInternshipProject\infrastructure\obj\Debug\net7.0\infrastructure.csproj.CopyComplete
+C:\Users\reda\source\repos\NewInternshipProject\infrastructure\obj\Debug\net7.0\infrastructure.dll
+C:\Users\reda\source\repos\NewInternshipProject\infrastructure\obj\Debug\net7.0\refint\infrastructure.dll
+C:\Users\reda\source\repos\NewInternshipProject\infrastructure\obj\Debug\net7.0\infrastructure.pdb
+C:\Users\reda\source\repos\NewInternshipProject\infrastructure\obj\Debug\net7.0\infrastructure.genruntimeconfig.cache
+C:\Users\reda\source\repos\NewInternshipProject\infrastructure\obj\Debug\net7.0\ref\infrastructure.dll

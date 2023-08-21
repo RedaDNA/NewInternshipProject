@@ -1,4 +1,5 @@
 using Core.Entities;
+using Core.Entities;
 using Core.Interfaces;
 using Core.Interfaces.IServices;
 using infrastructure.Data;
@@ -7,10 +8,18 @@ using infrastructure.Services;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using System.Collections.Generic;
+using Core.Entities.identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -49,6 +58,22 @@ builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<CarRentalContext>(options =>
     options.UseSqlServer("Server=localhost\\SQLEXPRESS01;Database=master;Trusted_Connection=True;TrustServerCertificate=True;"));
+//builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true).AddEntityFrameworkStores< CarRentalContext>();
+//builder.Services.AddIdentity<IdentityUser, IdentityRole>()
+//  .AddEntityFrameworkStores<CarRentalContext>();
+/*
+builder.Services.AddIdentity<IdentityUser, IdentityRole>()
+    .AddEntityFrameworkStores<CarRentalContext>()
+    .AddDefaultTokenProviders();
+*/
+/*
+builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+    .AddEntityFrameworkStores<CarRentalContext>();*/
+/*
+builder.Services.AddDefaultIdentity<IdentityUser<Guid>>(options => options.SignIn.RequireConfirmedAccount = true)
+        .AddEntityFrameworkStores<CarRentalContext>();*/
+builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
+        .AddEntityFrameworkStores<CarRentalContext>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 builder.Services.AddDIServices(builder.Configuration);
 
