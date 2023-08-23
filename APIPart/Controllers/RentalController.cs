@@ -1,4 +1,5 @@
 ﻿using APIPart.DTOs;
+using APIPart.DTOs.CarDtos;
 using APIPart.DTOs.RentalDtos;
 using APIPart.ErrorHandling;
 using AutoMapper;
@@ -43,38 +44,80 @@ namespace APIPart.Controllers
         [Route("GetRentals")]
 
         [HttpGet]
-        public async Task<ApiResponse> GetRentalsAsync([FromQuery] ListRequestDto listRequestDto)
+        public async Task<ApiResponse> GetRentalsAsync([FromQuery] RentalRequestDto rentalRequestDto)
         {
             if (!ModelState.IsValid)
             {
                 return new ApiBadRequestResponse(ModelState);
             }
-            var searchWord = listRequestDto.SearchWord.ToLower();
 
-             IQueryable<Rental>  query = _rentalService.GetQueryable().Include(r => r.Car)
-        .Include(r => r.Driver)
-        .Include(r => r.Customer).Where(c =>
+            IQueryable<Rental> query = _rentalService.GetQueryable().Include(r => r.Car)
+       .Include(r => r.Driver)
+       .Include(r => r.Customer);
+
+
+            if (!string.IsNullOrEmpty(rentalRequestDto.SearchWord))
+            {
+                var searchWord = rentalRequestDto.SearchWord.ToLower();
+                query=query.Where(c =>
                 c.Car.Number.ToLower().Contains(searchWord) ||
                 c.Car.Type.ToLower().Contains(searchWord) ||
                 c.Car.Color.ToLower().Contains(searchWord) ||
-               
+
             c.Customer.Name.ToLower().Contains(searchWord) ||
 
                 (c.Driver != null && c.Driver.Name.ToLower().Contains(searchWord))
             );
 
+            }
+
 
             var count =await query.CountAsync();
-            if (listRequestDto.SortingType == SortingType.asc)
+            var columnName = rentalRequestDto.SortingColumn.ToLower();
+            switch (columnName)
             {
-                query = query.OrderBy(c => c.StartDate);
+                case "startdate":
+                    query = rentalRequestDto.SortingType == "asc"
+                        ? query.OrderBy(c => c.StartDate)
+                        : query.OrderByDescending(c => c.StartDate);
+                    break;
+                case ("enddate"):
+                    query = rentalRequestDto.SortingType == "asc"
+                        ? query.OrderBy(c => c.EndDate)
+                        : query.OrderByDescending(c => c.EndDate);
+                    break;
+                case ("status"):
+                    query = rentalRequestDto.SortingType == "asc"
+                ? query.OrderBy(c => c.Status)
+                : query.OrderByDescending(c => c.Status);
+                    break;
+                case ("customername"):
+                    query = rentalRequestDto.SortingType == "asc"
+                        ? query.OrderBy(c => c.Customer.Name)
+                : query.OrderByDescending(c => c.Customer.Name);
+                    break;
+                case ("drivername"):
+                    query = rentalRequestDto.SortingType == "asc"
+                ? query.OrderBy(c => c.Driver.Name)
+                : query.OrderByDescending(c => c.Driver.Name);
+                    break;
+                case ("totalfare"):
+                    query = rentalRequestDto.SortingType == "asc"
+                ? query.OrderBy(c => c.TotalFare)
+                : query.OrderByDescending(c => c.TotalFare);
+                    break;
+                case ("carnumber"):
+                    query = rentalRequestDto.SortingType == "asc"
+                ? query.OrderBy(c => c.Car.Number)
+                : query.OrderByDescending(c => c.Car.Number);
+                    break;
+                default:
+
+                    query = query.OrderBy(c => c.StartDate);
+                    break;
             }
-            else if (listRequestDto.SortingType == SortingType.desc)
-            {
-                query = query.OrderByDescending(c => c.StartDate);
-            }
-            var pageIndex = listRequestDto.PageNumber - 1;
-            var pageSize = listRequestDto.PageSize;
+            var pageIndex = rentalRequestDto.PageNumber - 1;
+            var pageSize = rentalRequestDto.PageSize;
 
             query = query.Skip(pageIndex * pageSize).Take(pageSize);
             var rentals = await query.ToListAsync();
@@ -104,57 +147,7 @@ namespace APIPart.Controllers
                     DriverName = r.Driver.Name
                 }).ToList()
             };*/
-            var columnName = listRequestDto.SortingColumn;
-            switch (columnName)
-            {
-                case 0:
-                    query = listRequestDto.SortingType == SortingType.asc
-                        ? query.OrderBy(c => c.StartDate)
-                        : query.OrderByDescending(c => c.StartDate);
-                    break;
-                case (RentalSortingColumn?)1:
-                    query = listRequestDto.SortingType == SortingType.asc
-                        ? query.OrderBy(c => c.EndDate)
-                        : query.OrderByDescending(c => c.EndDate);
-                    break;
-                case (RentalSortingColumn?)2:
-                    query = listRequestDto.SortingType == SortingType.asc
-                        ? query.OrderBy(c => c.TotalFare)
-                        : query.OrderByDescending(c => c.TotalFare);
-                    break;
-                case (RentalSortingColumn?)3:
-                    query = listRequestDto.SortingType == SortingType.asc
-                        ? query.OrderBy(c => c.Car.Number)
-                        : query.OrderByDescending(c => c.Car.Number);
-                    break;
-                case (RentalSortingColumn?)4:
-                    query = listRequestDto.SortingType == SortingType.asc
-                        ? query.OrderBy(c => c.Car.Color)
-                        : query.OrderByDescending(c => c.Car.Color);
-                    break;
-                case (RentalSortingColumn?)5:
-                    query = listRequestDto.SortingType == SortingType.asc
-                        ? query.OrderBy(c => c.Car.Type)
-                        : query.OrderByDescending(c => c.Car.Type);
-                    break;
-                case (RentalSortingColumn?)6:
-                    query = listRequestDto.SortingType == SortingType.asc
-                        ? query.OrderBy(c => c.Customer.Name)
-                        : query.OrderByDescending(c => c.Customer.Name);
-                    break;
-                case (RentalSortingColumn?)7:
-                    query = listRequestDto.SortingType == SortingType.asc
-                        ? query.OrderBy(c => c.Driver.Name)
-                        : query.OrderByDescending(c => c.Driver.Name);
-                    break;
-
-             
-                default:
-                    
-                    query = query.OrderBy(c => c.StartDate);
-                    break;
-            }
-
+           
             // var rentals = await query.ToListAsync();
 
             //     var rentalPaginationDto = _mapper.Map<RentalPaginationDto>(rentals);
@@ -334,7 +327,7 @@ namespace APIPart.Controllers
                 return id;
             }
 
-            while (driver.HasReplacement)
+            while (driver.ReplacementDriverId != null)
             {
                 var replacementDriver = await _driverService.GetByIdAsync(driver.ReplacementDriverId.Value);
                 if (replacementDriver == null)

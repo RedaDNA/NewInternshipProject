@@ -8,9 +8,10 @@
         public int EngineCapacity { get; set; }
         public string Color { get; set; }
         public decimal DailyFare { get; set; }
-        public bool HasDriver { get; set; }
         public Guid? DriverId { get; set; }
         public bool IsAvailable { get; set; }
+        public string DriverName { get; set; }
+
 
     }
 }

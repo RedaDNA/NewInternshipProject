@@ -8,7 +8,6 @@
         public string Phone { get; set; }
         public string LicenseNumber { get; set; }
         public Guid? ReplacementDriverId { get; set; }
-        public bool HasReplacement { get; set; }
         public virtual Driver? ReplacementDriver { get; set; }
         public virtual ICollection<Car> Cars { get; set; }
         public virtual ICollection<Rental> Rentals { get; set; }

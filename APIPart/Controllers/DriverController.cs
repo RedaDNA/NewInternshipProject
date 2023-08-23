@@ -30,31 +30,53 @@ namespace APIPart.Controllers
         }
 
         [HttpGet]
-        public async Task<ApiResponse> GetDriversAsync([FromQuery] ListRequestDto listRequestDto)
+        public async Task<ApiResponse> GetDriversAsync([FromQuery] DriverRequestDto driverRequestDto)
         {
             if (!ModelState.IsValid)
             {
                 return new ApiBadRequestResponse(ModelState);
             }
-            var searchWord = listRequestDto.SearchWord.ToLower();
 
-            var query = _driverService.GetQueryable()
-                .Where(c =>
-                    c.Name.ToLower().Contains(searchWord) ||
-                    c.Phone.ToLower().Contains(searchWord) ||
-                    c.LicenseNumber.ToLower().Contains(searchWord)
-                );
+            var query = _driverService.GetQueryable();
+            if (!string.IsNullOrEmpty(driverRequestDto.SearchWord))
+            {
+                var searchWord = driverRequestDto.SearchWord.ToLower();
+
+                query = query
+                    .Where(c =>
+                        c.Name.ToLower().Contains(searchWord) ||
+                        c.Phone.ToLower().Contains(searchWord) ||
+                        c.LicenseNumber.ToLower().Contains(searchWord)
+                    );
+            }
+            var columnName = driverRequestDto.SortingColumn.ToLower();
             var count = await query.CountAsync();
-            if (listRequestDto.SortingType == SortingType.asc)
+            switch (columnName)
             {
-                query = query.OrderBy(c => c.Name);
+                case "name":
+                    query = driverRequestDto.SortingType == "asc"
+                        ? query.OrderBy(c => c.Name)
+                        : query.OrderByDescending(c => c.Name);
+                    break;
+                case ("licensenumber"):
+                    query = driverRequestDto.SortingType == "asc"
+                        ? query.OrderBy(c => c.LicenseNumber)
+                        : query.OrderByDescending(c => c.LicenseNumber);
+                    break;
+                case ("phone"):
+                    query = driverRequestDto.SortingType == "asc"
+                ? query.OrderBy(c => c.Phone)
+                : query.OrderByDescending(c => c.Phone);
+                    break;       
+                default:
+
+                    query = query.OrderBy(c => c.Name);
+                    break;
             }
-            else if (listRequestDto.SortingType == SortingType.desc)
-            {
-                query = query.OrderByDescending(c => c.Name);
-            }
-            var pageIndex = listRequestDto.PageNumber - 1;
-            var pageSize = listRequestDto.PageSize;
+          
+           
+            var pageIndex = driverRequestDto.PageNumber - 1;
+            var pageSize = driverRequestDto.PageSize;
 
             query = query.Skip(pageIndex * pageSize).Take(pageSize);
             var drivers = await query.ToListAsync();
@@ -101,7 +123,7 @@ namespace APIPart.Controllers
             Driver toCreateDriver = _mapper.Map<Driver>(createDriverDto);
 
 
-            toCreateDriver.HasReplacement = HasReplacement;
+          //  toCreateDriver.HasReplacement = HasReplacement;
             try
             {
                 var createdDriver = await _driverService.AddAsync(toCreateDriver);
@@ -143,7 +165,7 @@ namespace APIPart.Controllers
                 }
             }
             var newDriver = _mapper.Map<Driver>(updateDriverDto);
-            newDriver.HasReplacement = HasReplacement;
+           // newDriver.HasReplacement = HasReplacement;
             newDriver.Id = id;
             try { await _driverService.UpdateAsync(id, newDriver); }
 

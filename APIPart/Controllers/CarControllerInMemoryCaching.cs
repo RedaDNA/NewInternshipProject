@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using Newtonsoft.Json;
 using System.Text.Json;
 
 namespace APIPart.Controllers
@@ -41,70 +42,65 @@ namespace APIPart.Controllers
         [HttpGet]
         public async Task<ApiResponse> GetCarsAsync([FromQuery] CarRequestDto carRequestDto)
         {
+            var cacheKey = GetCacheKey(carRequestDto);
+            if (_memoryCache.TryGetValue(cacheKey, out CarPaginationDto cachedCarPaginationDto))
+            {
+                return new ApiOkResponse(cachedCarPaginationDto);
+            }
+
             if (!ModelState.IsValid)
             {
                 return new ApiBadRequestResponse(ModelState);
             }
             var searchWord = carRequestDto.SearchWord.ToLower();
-            var cacheKey = GetCacheKey(carRequestDto);
+       
 
             if (!_memoryCache.TryGetValue(searchWord, out CarPaginationDto carPaginationDto)) {
-                var query = _carService.GetQueryable()
-                .GroupJoin(
-                    _driverService.GetQueryable(),
-                    car => car.DriverId,
-                    driver => driver.Id,
-                    (car, drivers) => new { Car = car, Drivers = drivers.DefaultIfEmpty() }
-                )
-                .SelectMany(
-                    x => x.Drivers,
-                    (carResult, driver) => new { Car = carResult.Car, Driver = driver }
-                )
-                .Where(c =>
-                    c.Car.Number.ToLower().Contains(searchWord) ||
-                    c.Car.Type.ToLower().Contains(searchWord) ||
-                    c.Car.Color.ToLower().Contains(searchWord) ||
-                    c.Car.DailyFare.ToString().Contains(searchWord) ||
-                    c.Car.HasDriver.ToString().ToLower().Contains(searchWord) ||
-                    c.Car.IsAvailable.ToString().ToLower().Contains(searchWord) ||
-                    (c.Driver != null && c.Driver.Name.ToLower().Contains(searchWord))
-                )
-                .Select(c => c.Car);
+                IQueryable<Car> query = _carService.GetQueryable().Include(r => r.Driver);
+                if (!string.IsNullOrEmpty(carRequestDto.SearchWord))
+                {
+                    query = query.Where(c =>
+            c.Number.ToLower().Contains(searchWord) ||
+            c.Type.ToLower().Contains(searchWord) ||
+            c.Color.ToLower().Contains(searchWord) ||
+            c.DailyFare.ToString().Contains(searchWord) ||
+            (c.Driver != null && c.Driver.Name.ToLower().Contains(searchWord))
+        );
 
+                }
 
                 var count = await query.CountAsync();
-                var columnName = carRequestDto.SortingColumn;
+                var columnName = carRequestDto.SortingColumn.ToLower();
                 switch (columnName)
                 {
-                    case 0:
-                        query = carRequestDto.SortingType == SortingType.asc
+                    case "number":
+                        query = carRequestDto.SortingType == "asc"
                             ? query.OrderBy(c => c.Number)
                             : query.OrderByDescending(c => c.Number);
                         break;
-                    case (CarSortingColumn)1:
-                        query = carRequestDto.SortingType == SortingType.asc
+                    case ("type"):
+                        query = carRequestDto.SortingType == "asc"
                             ? query.OrderBy(c => c.Type)
                             : query.OrderByDescending(c => c.Type);
                         break;
-                    case (CarSortingColumn)2:
-                        query = carRequestDto.SortingType == SortingType.asc
+                    case ("enginecapacity"):
+                        query = carRequestDto.SortingType == "asc"
                     ? query.OrderBy(c => c.EngineCapacity)
                     : query.OrderByDescending(c => c.EngineCapacity);
                         break;
-                    case (CarSortingColumn)3:
-                        query = carRequestDto.SortingType == SortingType.asc
-                    ? query.OrderBy(c => c.Color)
+                    case ("color"):
+                        query = carRequestDto.SortingType == "asc"
+                            ? query.OrderBy(c => c.Color)
                     : query.OrderByDescending(c => c.Color);
                         break;
-                    case (CarSortingColumn)4:
-                        query = carRequestDto.SortingType == SortingType.asc
+                    case ("dailyfare"):
+                        query = carRequestDto.SortingType == "asc"
                     ? query.OrderBy(c => c.DailyFare)
                     : query.OrderByDescending(c => c.DailyFare);
                         break;
 
 
                     default:
-
                         query = query.OrderBy(c => c.Number);
                         break;
                 }
@@ -129,7 +125,7 @@ namespace APIPart.Controllers
         private string GetCacheKey(CarRequestDto carRequestDto)
         {
             var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-            var serializedDto = JsonSerializer.Serialize(carRequestDto, options);
+            var serializedDto = System.Text.Json.JsonSerializer.Serialize(carRequestDto, options);
             return $"CarRequest:{serializedDto}";
         }
     }

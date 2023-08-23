@@ -8,6 +8,7 @@ using Core.Interfaces.IServices;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using infrastructure.Services;
+using APIPart.DTOs.CarDtos;
 
 namespace APIPart.Controllers
 {
@@ -27,27 +28,49 @@ namespace APIPart.Controllers
         }
         [Route("GetCustomers")]
         [HttpGet]
-        public async Task<ApiResponse> GetCustomersAsync([FromQuery] ListRequestDto listRequestDto)
+        public async Task<ApiResponse> GetCustomersAsync([FromQuery] CustomerRequestDto customerRequestDto)
         {
-            var searchWord = listRequestDto.SearchWord.ToLower();
 
-            var query = _customerService.GetQueryable()
-                .Where(c =>
-                    c.Name.ToLower().Contains(searchWord) ||
-                    c.Phone.ToLower().Contains(searchWord) ||
-                    c.Email.ToLower().Contains(searchWord)
-                );
+            var query = _customerService.GetQueryable();
+            if (!string.IsNullOrEmpty(customerRequestDto.SearchWord))
+            {
+                var searchWord = customerRequestDto.SearchWord.ToLower();
+
+                query = query
+                    .Where(c =>
+                        c.Name.ToLower().Contains(searchWord) ||
+                        c.Phone.ToLower().Contains(searchWord) ||
+                        c.Email.ToLower().Contains(searchWord)
+                    );
+            }
             var count = await query.CountAsync();
-            if (listRequestDto.SortingType == SortingType.asc)
+            var columnName = customerRequestDto.SortingColumn.ToLower();
+            switch (columnName)
             {
-                query = query.OrderBy(c => c.Name);
+                case "name":
+                    query = customerRequestDto.SortingType == "asc"
+                        ? query.OrderBy(c => c.Name)
+                        : query.OrderByDescending(c => c.Name);
+                    break;
+                case ("email"):
+                    query = customerRequestDto.SortingType == "asc"
+                        ? query.OrderBy(c => c.Email)
+                        : query.OrderByDescending(c => c.Email);
+                    break;
+                case ("phone"):
+                    query = customerRequestDto.SortingType == "asc"
+                ? query.OrderBy(c => c.Phone)
+                : query.OrderByDescending(c => c.Phone);
+                    break;
+        
+                default:
+
+                    query = query.OrderBy(c => c.Name);
+                    break;
             }
-            else if (listRequestDto.SortingType == SortingType.desc)
-            {
-                query = query.OrderByDescending(c => c.Name);
-            }
-            var pageIndex = listRequestDto.PageNumber - 1;
-            var pageSize = listRequestDto.PageSize;
+       
+            var pageIndex = customerRequestDto.PageNumber - 1;
+            var pageSize = customerRequestDto.PageSize;
 
             query = query.Skip(pageIndex * pageSize).Take(pageSize);
             var customers = await query.ToListAsync();

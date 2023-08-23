@@ -1,5 +1,6 @@
 ﻿using APIPart.DTOs;
 using APIPart.DTOs.CarDtos;
+using APIPart.DTOs.RentalDtos;
 using APIPart.ErrorHandling;
 using AutoMapper;
 using Core.Entities;
@@ -34,7 +35,7 @@ namespace APIPart.Controllers
         [Route("GetCars")]
 
         [HttpGet]
-        [Authorize]
+        
         public async Task<ApiResponse> GetCarsAsync([FromQuery] CarRequestDto carRequestDto)
         {
             if (!ModelState.IsValid)
@@ -43,64 +44,61 @@ namespace APIPart.Controllers
             }
             var searchWord = carRequestDto.SearchWord.ToLower();
 
-            var query = _carService.GetQueryable()
-            .GroupJoin(
-                _driverService.GetQueryable(),
-                car => car.DriverId,
-                driver => driver.Id,
-                (car, drivers) => new { Car = car, Drivers = drivers.DefaultIfEmpty() }
-            )
-            .SelectMany(
-                x => x.Drivers,
-                (carResult, driver) => new { Car = carResult.Car, Driver = driver }
-            )
-            .Where(c =>
-                c.Car.Number.ToLower().Contains(searchWord) ||
-                c.Car.Type.ToLower().Contains(searchWord) ||
-                c.Car.Color.ToLower().Contains(searchWord) ||
-                c.Car.DailyFare.ToString().Contains(searchWord) ||
-                c.Car.HasDriver.ToString().ToLower().Contains(searchWord) ||
-                c.Car.IsAvailable.ToString().ToLower().Contains(searchWord) ||
-                (c.Driver != null && c.Driver.Name.ToLower().Contains(searchWord))
-            )
-            .Select(c => c.Car);
+            IQueryable<Car> query = _carService.GetQueryable().Include(r => r.Driver);
+            if (!string.IsNullOrEmpty(carRequestDto.SearchWord))
+            {
+                query = query.Where(c =>
+        c.Number.ToLower().Contains(searchWord) ||
+        c.Type.ToLower().Contains(searchWord) ||
+        c.Color.ToLower().Contains(searchWord) ||
+        c.DailyFare.ToString().Contains(searchWord) ||
+        (c.Driver != null && c.Driver.Name.ToLower().Contains(searchWord))
+    );
 
+            }
 
             var count = await query.CountAsync();
-            var columnName = carRequestDto.SortingColumn;
-            switch (columnName)
+            if (!string.IsNullOrEmpty(carRequestDto.SortingColumn))
             {
-                case 0:
-                    query = carRequestDto.SortingType == SortingType.asc
-                        ? query.OrderBy(c => c.Number)
-                        : query.OrderByDescending(c => c.Number);
-                    break;
-                case (CarSortingColumn)1:
-                    query = carRequestDto.SortingType == SortingType.asc
-                        ? query.OrderBy(c => c.Type)
-                        : query.OrderByDescending(c => c.Type);
-                    break;
-                case (CarSortingColumn)2:
-                    query = carRequestDto.SortingType == SortingType.asc
-                ? query.OrderBy(c => c.EngineCapacity)
-                : query.OrderByDescending(c => c.EngineCapacity);
-                    break;
-                case (CarSortingColumn)3:
-                    query = carRequestDto.SortingType == SortingType.asc
-                ? query.OrderBy(c => c.Color)
-                : query.OrderByDescending(c => c.Color);
-                    break;
-                case (CarSortingColumn)4:
-                    query = carRequestDto.SortingType == SortingType.asc
-                ? query.OrderBy(c => c.DailyFare)
-                : query.OrderByDescending(c => c.DailyFare);
-                    break;
+                var columnName = carRequestDto.SortingColumn.ToLower();
+                switch (columnName)
+                {
+                    case "number":
+                        query = carRequestDto.SortingType == "asc"
+                            ? query.OrderBy(c => c.Number)
+                            : query.OrderByDescending(c => c.Number);
+                        break;
+                    case ("type"):
+                        query = carRequestDto.SortingType == "asc"
+                            ? query.OrderBy(c => c.Type)
+                            : query.OrderByDescending(c => c.Type);
+                        break;
+                    case ("enginecapacity"):
+                        query = carRequestDto.SortingType == "asc"
+                    ? query.OrderBy(c => c.EngineCapacity)
+                    : query.OrderByDescending(c => c.EngineCapacity);
+                        break;
+                    case ("color"):
+                        query = carRequestDto.SortingType == "asc"
+                            ? query.OrderBy(c => c.Color)
+                    : query.OrderByDescending(c => c.Color);
+                        break;
+                    case ("dailyfare"):
+                        query = carRequestDto.SortingType == "asc"
+                    ? query.OrderBy(c => c.DailyFare)
+                    : query.OrderByDescending(c => c.DailyFare);
+                        break;
+                    case ("drivername"):
+                        query = carRequestDto.SortingType == "asc"
+                    ? query.OrderBy(c => c.Driver.Name)
+                    : query.OrderByDescending(c => c.Driver.Name);
+                        break;
 
-              
-                default:
-                    
-                    query = query.OrderBy(c => c.Number);
-                    break;
+                    default:
+
+                        query = query.OrderBy(c => c.Number);
+                        break;
+                }
             }
             var pageIndex = carRequestDto.PageNumber - 1;
             var pageSize = carRequestDto.PageSize;
@@ -157,7 +155,7 @@ namespace APIPart.Controllers
                 }
             }
             Car toCreateCar = _mapper.Map<Car>(createCarDto);
-            toCreateCar.HasDriver = HasDriver;
+       //     toCreateCar.HasDriver = HasDriver;
             try
             {
                 var createdCar = await _carService.AddAsync(toCreateCar);
@@ -199,7 +197,7 @@ namespace APIPart.Controllers
                 }
             }
             var newCar = _mapper.Map<Car>(updateCarDto);
-            newCar.HasDriver = HasDriver;
+           // newCar.HasDriver = HasDriver;
             newCar.Id = id;
             try { await _carService.UpdateAsync(id, newCar); }
 

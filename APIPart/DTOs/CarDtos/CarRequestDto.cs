@@ -8,7 +8,7 @@ namespace APIPart.DTOs.CarDtos
         public int PageNumber { get; set; } = 1;
 
         public string? SearchWord { get; set; } = "";
-        public SortingType? SortingType { get; set; }
-        public CarSortingColumn SortingColumn { get; set; } 
+        public String? SortingType { get; set; } 
+        public String? SortingColumn { get; set; }= ""; 
     }
 }
