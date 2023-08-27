@@ -41,9 +41,6 @@ namespace infrastructure.Migrations
                     b.Property<int>("EngineCapacity")
                         .HasColumnType("int");
 
-                    b.Property<bool>("HasDriver")
-                        .HasColumnType("bit");
-
                     b.Property<bool>("IsAvailable")
                         .HasColumnType("bit");
 
@@ -90,9 +87,6 @@ namespace infrastructure.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<bool>("HasReplacement")
-                        .HasColumnType("bit");
 
                     b.Property<bool>("IsAvailable")
                         .HasColumnType("bit");

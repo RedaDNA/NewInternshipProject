@@ -43,6 +43,7 @@ namespace APIPart.Controllers
         public async Task<ApiResponse> GetCarsAsync([FromQuery] CarRequestDto carRequestDto)
         {
             var cacheKey = GetCacheKey(carRequestDto);
+
             if (_memoryCache.TryGetValue(cacheKey, out CarPaginationDto cachedCarPaginationDto))
             {
                 return new ApiOkResponse(cachedCarPaginationDto);
@@ -55,7 +56,7 @@ namespace APIPart.Controllers
             var searchWord = carRequestDto.SearchWord.ToLower();
        
 
-            if (!_memoryCache.TryGetValue(searchWord, out CarPaginationDto carPaginationDto)) {
+            if (!_memoryCache.TryGetValue(cacheKey, out CarPaginationDto carPaginationDto)) {
                 IQueryable<Car> query = _carService.GetQueryable().Include(r => r.Driver);
                 if (!string.IsNullOrEmpty(carRequestDto.SearchWord))
                 {
@@ -128,6 +129,166 @@ namespace APIPart.Controllers
             var serializedDto = System.Text.Json.JsonSerializer.Serialize(carRequestDto, options);
             return $"CarRequest:{serializedDto}";
         }
+
+
+        [HttpGet("{id}")]
+        public async Task<ApiResponse> GetAsync(Guid id)
+        {
+            if (!ModelState.IsValid)
+            {
+                return new ApiBadRequestResponse(ModelState);
+            }
+
+            var car = await _carService.GetByIdAsync(id);
+
+            if (car == null)
+            {
+                return new ApiResponse(404, "Car not found with id " + id.ToString());
+            }
+            CarDTO carDto = _mapper.Map<CarDTO>(car);
+
+            return new ApiOkResponse(carDto);
+
+
+
+        }
+
+        [HttpPost]
+        public async Task<ApiResponse> CreateAsync(CreateCarDto createCarDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return new ApiBadRequestResponse(ModelState);
+            }
+            bool HasDriver = createCarDto.DriverId.HasValue;
+            if (HasDriver)
+            {
+
+                var driver = await _driverService.IsExistAsync(createCarDto.DriverId.Value);
+                if (!driver)
+                {
+                    return new ApiResponse(400, "Invalid DriverId specified, no driver have this id");
+                }
+            }
+            Car toCreateCar = _mapper.Map<Car>(createCarDto);
+            //     toCreateCar.HasDriver = HasDriver;
+            try
+            {
+                var createdCar = await _carService.AddAsync(toCreateCar);
+                var createdCarDto = _mapper.Map<CarDTO>(createdCar);
+                var createdCarListDto = _mapper.Map<CarListDto>(createdCar);
+                var cacheKey = GetCacheKey(new CarRequestDto());
+                if (_memoryCache.TryGetValue(cacheKey, out CarPaginationDto cachedCarPaginationDto))
+                {
+                    
+                    cachedCarPaginationDto.CarList.Add(createdCarListDto);
+                    cachedCarPaginationDto.Count++;
+                    _memoryCache.Set(cacheKey, cachedCarPaginationDto);
+                }
+                return new ApiOkResponse(createdCarDto);
+            }
+
+            catch (Exception ex)
+            {
+
+                return new ApiResponse(400, ex.Message);
+            }
+
+
+
+        }
+
+
+        [HttpPut("{id}")]
+        public async Task<ApiResponse> UpdateAsync(Guid id, UpdateCarDto updateCarDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return new ApiBadRequestResponse(ModelState);
+            }
+            var car = await _carService.GetByIdAsync(id);
+            if (car == null)
+            {
+                return new ApiResponse(404, "Car not found with id " + id.ToString());
+            }
+            bool HasDriver = updateCarDto.DriverId.HasValue;
+            if (HasDriver)
+            {
+
+                var driver = await _driverService.IsExistAsync(updateCarDto.DriverId.Value);
+                if (!driver)
+                {
+                    return new ApiResponse(400, "Invalid DriverId specified, no driver have this id");
+                }
+            }
+            var newCar = _mapper.Map<Car>(updateCarDto);
+            
+            newCar.Id = id;
+            try { await _carService.UpdateAsync(id, newCar);
+                // Update the cache
+                var cacheKey = GetCacheKey(new CarRequestDto());
+                if (_memoryCache.TryGetValue(cacheKey, out CarPaginationDto cachedCarPaginationDto)) {
+
+
+                    var updatedCarDto = cachedCarPaginationDto.CarList.FirstOrDefault(c => c.Id == id);
+                    if (updatedCarDto != null)
+                    {
+                        _mapper.Map(newCar, updatedCarDto);
+                        _memoryCache.Set(cacheKey, cachedCarPaginationDto);
+                    }
+
+                }
+
+
+            }
+
+            catch (Exception ex)
+            {
+
+                return new ApiResponse(400, ex.Message);
+            }
+            return new ApiOkResponse(updateCarDto);
+        }
+
+
+        [HttpDelete("{id}")]
+        public async Task<ApiResponse> DeleteAsync(Guid id)
+        {
+            if (!ModelState.IsValid)
+            {
+                return new ApiBadRequestResponse(ModelState);
+            }
+            var car = await _carService.IsExistAsync(id);
+            if (!car)
+            {
+                return new ApiResponse(404, "Car not found with id " + id.ToString());
+            }
+            var carUsedInRental = await _rentalService.IsCarExistInAsync(id);
+            if (carUsedInRental)
+            {
+                return new ApiResponse(404, "Cannot delete the car, Car is already used in rental record");
+
+
+            }
+            await _carService.DeleteAsync(id);
+            // Update the cache
+            var cacheKey = GetCacheKey(new CarRequestDto());
+            if (_memoryCache.TryGetValue(cacheKey, out CarPaginationDto cachedCarPaginationDto))
+            {
+                // Remove the deleted car from the cached pagination data
+                var deletedCarDto = cachedCarPaginationDto.CarList.FirstOrDefault(c => c.Id == id);
+                if (deletedCarDto != null)
+                {
+                    cachedCarPaginationDto.CarList.Remove(deletedCarDto);
+                    cachedCarPaginationDto.Count--;
+                    _memoryCache.Set(cacheKey, cachedCarPaginationDto);
+                }
+            }
+            return new ApiOkResponse("car with id" + id + "is deleted");
+        }
+
+
+
     }
 
 

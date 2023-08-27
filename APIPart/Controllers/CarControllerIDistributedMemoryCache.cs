@@ -117,6 +117,137 @@ namespace APIPart.Controllers
 
             return new ApiOkResponse(carPaginationDto); ;
         }
+        [HttpGet]
+        public async Task<ApiResponse> GetAsync(Guid id)
+        {
+            if (!ModelState.IsValid)
+            {
+                return new ApiBadRequestResponse(ModelState);
+            }
+
+            var car = await _carService.GetByIdAsync(id);
+
+            if (car == null)
+            {
+                return new ApiResponse(404, "Car not found with id " + id.ToString());
+            }
+            CarDTO carDto = _mapper.Map<CarDTO>(car);
+
+            return new ApiOkResponse(carDto);
+
+
+
+        }
+
+        [HttpPost]
+        public async Task<ApiResponse> CreateAsync(CreateCarDto createCarDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return new ApiBadRequestResponse(ModelState);
+            }
+            bool HasDriver = createCarDto.DriverId.HasValue;
+            if (HasDriver)
+            {
+
+                var driver = await _driverService.IsExistAsync(createCarDto.DriverId.Value);
+                if (!driver)
+                {
+                    return new ApiResponse(400, "Invalid DriverId specified, no driver have this id");
+                }
+            }
+            Car toCreateCar = _mapper.Map<Car>(createCarDto);
+            //     toCreateCar.HasDriver = HasDriver;
+            try
+            {
+                var createdCar = await _carService.AddAsync(toCreateCar);
+                var createdCarDto = _mapper.Map<CarDTO>(createdCar);
+                await _cache.RemoveAsync("GetCars-*");
+                return new ApiOkResponse(createdCarDto);
+            }
+            catch (Exception ex)
+            {
+
+                return new ApiResponse(400, ex.Message);
+            }
+
+
+
+        }
+
+
+        [HttpPut("{id}")]
+        public async Task<ApiResponse> UpdateAsync(Guid id, UpdateCarDto updateCarDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return new ApiBadRequestResponse(ModelState);
+            }
+            var car = await _carService.GetByIdAsync(id);
+            if (car == null)
+            {
+                return new ApiResponse(404, "Car not found with id " + id.ToString());
+            }
+            bool HasDriver = updateCarDto.DriverId.HasValue;
+            if (HasDriver)
+            {
+
+                var driver = await _driverService.IsExistAsync(updateCarDto.DriverId.Value);
+                if (!driver)
+                {
+                    return new ApiResponse(400, "Invalid DriverId specified, no driver have this id");
+                }
+            }
+            var newCar = _mapper.Map<Car>(updateCarDto);
+            // newCar.HasDriver = HasDriver;
+            newCar.Id = id;
+            try { await _carService.UpdateAsync(id, newCar);
+                await _cache.RemoveAsync("GetCars-*");
+            }
+
+            catch (Exception ex)
+            {
+
+                return new ApiResponse(400, ex.Message);
+            }
+            return new ApiOkResponse(updateCarDto);
+        }
+
+
+        [HttpDelete("{id}")]
+        public async Task<ApiResponse> DeleteAsync(Guid id)
+        {
+            if (!ModelState.IsValid)
+            {
+                return new ApiBadRequestResponse(ModelState);
+            }
+            var car = await _carService.IsExistAsync(id);
+            if (!car)
+            {
+                return new ApiResponse(404, "Car not found with id " + id.ToString());
+            }
+            var carUsedInRental = await _rentalService.IsCarExistInAsync(id);
+            if (carUsedInRental)
+            {
+                return new ApiResponse(404, "Cannot delete the car, Car is already used in rental record");
+
+
+            }
+            try
+            {
+                await _carService.DeleteAsync(id);
+
+                // Invalidate cache for GetCarsAsync API
+                await _cache.RemoveAsync("GetCars-*");
+
+                return new ApiOkResponse("Car with id " + id + " is deleted");
+            }
+            catch (Exception ex)
+            {
+                return new ApiResponse(400, ex.Message);
+            }
+        }
+
 
 
     }
