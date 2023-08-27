@@ -202,7 +202,7 @@ namespace APIPart.Controllers
                 }
              
               
-                var availableDriverId = await GetAvailableDriver(createRentalDto.DriverId.Value);
+                var availableDriverId = await GetAvailableDriver(createRentalDto.DriverId.Value,createRentalDto.StartDate,createRentalDto.EndDate);
 
                 createRentalDto.DriverId = availableDriverId;
             }
@@ -216,6 +216,12 @@ namespace APIPart.Controllers
             {
                 return new ApiResponse(400, "Car is not available for renting");
             }
+          var isCarAlreadyRented = await _rentalService.IsCarRentedAsync(createRentalDto.CarId, createRentalDto.StartDate, createRentalDto.EndDate);
+            if (isCarAlreadyRented)
+            {
+                return new ApiResponse(400, "The car is already rented during the requested time.");
+            }
+
             if (createRentalDto.StartDate.Date == DateTime.Now.Date)
             {
                 _carService.ChangeStatusToNotAvailable(createRentalDto.CarId);
@@ -276,11 +282,16 @@ namespace APIPart.Controllers
             {
                 return new ApiResponse(400, "Car is not available for renting");
             }
+            var isCarAlreadyRented = await _rentalService.IsCarRentedAsync(updateRentalDto.CarId, updateRentalDto.StartDate, updateRentalDto.EndDate);
+            if (isCarAlreadyRented)
+            {
+                return new ApiResponse(400, "The car is already rented during the requested time.");
+            }
             if (updateRentalDto.StartDate.Date == DateTime.Now.Date)
             {
                 _carService.ChangeStatusToNotAvailable(updateRentalDto.CarId);
             }
-            var availableDriverId = await GetAvailableDriver(updateRentalDto.DriverId.Value);
+            var availableDriverId = await GetAvailableDriver(updateRentalDto.DriverId.Value, updateRentalDto.StartDate, updateRentalDto.EndDate);
 
             updateRentalDto.DriverId = availableDriverId;
         
@@ -316,13 +327,13 @@ namespace APIPart.Controllers
 
 
         [HttpGet("GetAvailableDriver")]
-        public async Task<Guid> GetAvailableDriver(Guid id)
+        public async Task<Guid> GetAvailableDriver(Guid id, DateTime startDate, DateTime endDate)
         {
 
             var driver = await _driverService.GetByIdAsync(id);
 
 
-            if (driver.IsAvailable)
+            if (driver.IsAvailable && !await _rentalService.IsDriverBusy(driver.Id, startDate, endDate))
             {
                 return id;
             }
@@ -335,7 +346,7 @@ namespace APIPart.Controllers
                     break;
                 }
 
-                if (replacementDriver.IsAvailable)
+                if (replacementDriver.IsAvailable && !await _rentalService.IsDriverBusy(replacementDriver.Id, startDate, endDate))
                 {
                     return replacementDriver.Id;
                 }
@@ -343,9 +354,9 @@ namespace APIPart.Controllers
                 driver = replacementDriver;
             }
 
-            throw new Exception("The chossen driver is not availble, and no available replacement driver found.");
+            throw new Exception("The chosen  driver is not available, and no available replacement driver found.");
         }
-      
 
+       
     }
 }

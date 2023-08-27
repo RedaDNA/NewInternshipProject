@@ -7,7 +7,6 @@
         public string Phone { get; set; }
         public string LicenseNumber { get; set; }
         public Guid? ReplacementDriverId { get; set; }
-        public bool HasReplacement { get; set; }
 
         public bool IsAvailable { get; set; }
     }

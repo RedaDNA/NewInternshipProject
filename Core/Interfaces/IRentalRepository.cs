@@ -13,5 +13,10 @@ namespace Core.Interfaces
       public  Task<bool>  IsCarExistInAsync(Guid id);
         public Task<bool> IsCustomerExistInAsync(Guid customerId);
         public Task<bool> IsDriverExistInAsync(Guid driverId);
+
+        public  Task<bool> IsCarRentedAsync(Guid carId, DateTime startDate, DateTime endDate);
+
+        Task<bool> IsDriverBusy(Guid driverId, DateTime startDate, DateTime endDate);
+
     }
 }

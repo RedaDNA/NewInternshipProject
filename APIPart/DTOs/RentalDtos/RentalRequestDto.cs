@@ -7,6 +7,6 @@
 
         public string? SearchWord { get; set; } = "";
         public String? SortingType { get; set; }
-        public String? SortingColumn { get; set; }
+        public String? SortingColumn { get; set; } ="";
     }
 }

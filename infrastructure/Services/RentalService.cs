@@ -1,6 +1,7 @@
 ﻿using Core.Entities;
 using Core.Interfaces;
 using Core.Interfaces.IServices;
+using infrastructure.Migrations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -114,5 +115,19 @@ namespace infrastructure.Services
         {
             return _unitOfWork.Rentals.IsDriverExistInAsync(driverId);
         }
+        public  Task<bool> IsCarRentedAsync(Guid carId, DateTime startDate, DateTime endDate) {
+
+            return _unitOfWork.Rentals.IsCarRentedAsync(carId,startDate,endDate);
+
+
+
+        }
+
+        public Task<bool> IsDriverBusy(Guid driverId, DateTime startDate, DateTime endDate)
+        {
+
+            return _unitOfWork.Rentals.IsDriverBusy(driverId, startDate, endDate);
+        }
     }
 }
+
