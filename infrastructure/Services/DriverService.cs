@@ -35,7 +35,7 @@ namespace infrastructure.Services
 
                 return false;
 
-            _unitOfWork.Drivers.DeleteAsync(driver.Id);
+             await  _unitOfWork.Drivers.DeleteAsync(driver.Id);
             var result = _unitOfWork.Save();
 
             return true;
@@ -54,12 +54,10 @@ namespace infrastructure.Services
         {
 
             var driver = await _unitOfWork.Drivers.GetByIdAsync(id);
-            if (driver != null)
-            {
+          
+            
                 return driver;
-            }
-
-            return null;
+          
         }
 
 
@@ -68,7 +66,7 @@ namespace infrastructure.Services
         {
               var toUpdateDriver = await _unitOfWork.Drivers.IsExistAsync(id);
       
-                    _unitOfWork.Drivers.UpdateAsync(id, driver);
+                    await _unitOfWork.Drivers.UpdateAsync(id, driver);
 
                     var result = _unitOfWork.Save();
 

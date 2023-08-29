@@ -21,7 +21,8 @@ namespace APIPart.Profiles
                 src => src.MapFrom(c => c));
 
 
-
+            CreateMap<IEnumerable<Car>, CarPaginationDto>().ForMember(des => des.CarList,
+               src => src.MapFrom(c => c));
 
             /* var configuration = new MapperConfiguration(cfg => {
                  cfg.CreateMap<CarListDto, Car>().ConvertUsing(s =>s.Id,d =>d.MapFrom(c => c.));

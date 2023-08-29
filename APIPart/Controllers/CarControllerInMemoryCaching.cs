@@ -14,6 +14,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
 using System.Text.Json;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace APIPart.Controllers
 {
@@ -40,37 +41,23 @@ namespace APIPart.Controllers
         [Route("GetCars")]
 
         [HttpGet]
-        public async Task<ApiResponse> GetCarsAsync([FromQuery] CarRequestDto carRequestDto)
+        public  ApiResponse  GetCars([FromQuery] CarRequestDto carRequestDto)
         {
-            var cacheKey = GetCacheKey(carRequestDto);
-
-            if (_memoryCache.TryGetValue(cacheKey, out CarPaginationDto cachedCarPaginationDto))
-            {
-                return new ApiOkResponse(cachedCarPaginationDto);
-            }
 
             if (!ModelState.IsValid)
             {
                 return new ApiBadRequestResponse(ModelState);
             }
-            var searchWord = carRequestDto.SearchWord.ToLower();
-       
-
-            if (!_memoryCache.TryGetValue(cacheKey, out CarPaginationDto carPaginationDto)) {
-                IQueryable<Car> query = _carService.GetQueryable().Include(r => r.Driver);
-                if (!string.IsNullOrEmpty(carRequestDto.SearchWord))
-                {
-                    query = query.Where(c =>
-            c.Number.ToLower().Contains(searchWord) ||
-            c.Type.ToLower().Contains(searchWord) ||
-            c.Color.ToLower().Contains(searchWord) ||
-            c.DailyFare.ToString().Contains(searchWord) ||
-            (c.Driver != null && c.Driver.Name.ToLower().Contains(searchWord))
-        );
-
-                }
-
-                var count = await query.CountAsync();
+            if ( _memoryCache.TryGetValue("CarList", out List<Car> cachedCarList))
+            {
+                var searchWord =  carRequestDto.SearchWord.ToLower();
+                var query =  cachedCarList.Where(c =>
+                c.Number.ToLower().Contains(searchWord) ||
+                c.Type.ToLower().Contains(searchWord) ||
+                c.Color.ToLower().Contains(searchWord) ||
+                c.DailyFare.ToString().Contains(searchWord) ||
+                (c.Driver != null && c.Driver.Name.ToLower().Contains(searchWord)));
+                var count =  query.Count();
                 var columnName = carRequestDto.SortingColumn.ToLower();
                 switch (columnName)
                 {
@@ -109,48 +96,41 @@ namespace APIPart.Controllers
                 var pageSize = carRequestDto.PageSize;
 
                 query = query.Skip(pageIndex * pageSize).Take(pageSize);
-                var cars = await query.ToListAsync();
-            
+                
 
-            carPaginationDto = _mapper.Map<CarPaginationDto>(cars);
-            carPaginationDto.Count = count;
-                var cachExpirationOption = new MemoryCacheEntryOptions {
-                    AbsoluteExpiration = DateTime.Now.AddHours(1), SlidingExpiration = TimeSpan.FromMinutes(1)
-            };
 
-                _memoryCache.Set(cacheKey, carPaginationDto,cachExpirationOption); 
+              var  carPaginationDto = _mapper.Map<CarPaginationDto>(query);
+                carPaginationDto.Count = count;
+                return new ApiOkResponse(carPaginationDto);
             }
-            return new ApiOkResponse(carPaginationDto);
-
+            return new ApiResponse(
+                404
+              ,"Cached data not found.");
+          
         }
-        private string GetCacheKey(CarRequestDto carRequestDto)
-        {
-            var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-            var serializedDto = System.Text.Json.JsonSerializer.Serialize(carRequestDto, options);
-            return $"CarRequest:{serializedDto}";
-        }
-
-
+       
         [HttpGet("{id}")]
-        public async Task<ApiResponse> GetAsync(Guid id)
+        public  ApiResponse Get(Guid id)
         {
             if (!ModelState.IsValid)
             {
                 return new ApiBadRequestResponse(ModelState);
             }
-
-            var car = await _carService.GetByIdAsync(id);
-
-            if (car == null)
+            if (_memoryCache.TryGetValue("CarList", out List<Car> cachedCarTable))
             {
-                return new ApiResponse(404, "Car not found with id " + id.ToString());
+
+                var car =  cachedCarTable.FirstOrDefault(c => c.Id == id);
+
+                if (car == null)
+                {
+                    return new ApiResponse(404, "Car not found with id " + id.ToString());
+                }
+                CarDTO carDto = _mapper.Map<CarDTO>(car);
+
+                return new ApiOkResponse(carDto);
             }
-            CarDTO carDto = _mapper.Map<CarDTO>(car);
-
-            return new ApiOkResponse(carDto);
-
-
-
+            return new ApiResponse(404, "Cached data not found.");
+        
         }
 
         [HttpPost]
@@ -171,20 +151,19 @@ namespace APIPart.Controllers
                 }
             }
             Car toCreateCar = _mapper.Map<Car>(createCarDto);
-            //     toCreateCar.HasDriver = HasDriver;
+    
             try
             {
                 var createdCar = await _carService.AddAsync(toCreateCar);
                 var createdCarDto = _mapper.Map<CarDTO>(createdCar);
                 var createdCarListDto = _mapper.Map<CarListDto>(createdCar);
-                var cacheKey = GetCacheKey(new CarRequestDto());
-                if (_memoryCache.TryGetValue(cacheKey, out CarPaginationDto cachedCarPaginationDto))
+
+                if (_memoryCache.TryGetValue("CarList", out List<Car> cachedCarList))
                 {
-                    
-                    cachedCarPaginationDto.CarList.Add(createdCarListDto);
-                    cachedCarPaginationDto.Count++;
-                    _memoryCache.Set(cacheKey, cachedCarPaginationDto);
+                    cachedCarList.Add(createdCar); 
+                    _memoryCache.Set("CarList", cachedCarList);
                 }
+
                 return new ApiOkResponse(createdCarDto);
             }
 
@@ -224,30 +203,31 @@ namespace APIPart.Controllers
             var newCar = _mapper.Map<Car>(updateCarDto);
             
             newCar.Id = id;
-            try { await _carService.UpdateAsync(id, newCar);
-                // Update the cache
-                var cacheKey = GetCacheKey(new CarRequestDto());
-                if (_memoryCache.TryGetValue(cacheKey, out CarPaginationDto cachedCarPaginationDto)) {
+            try
+            {
+                await _carService.UpdateAsync(id, newCar);
 
-
-                    var updatedCarDto = cachedCarPaginationDto.CarList.FirstOrDefault(c => c.Id == id);
-                    if (updatedCarDto != null)
+             
+            
+                if (_memoryCache.TryGetValue("CarList", out List<Car> CarList))
+                {
+                    var updatedCar = CarList.FirstOrDefault(c => c.Id == id);
+                    if (updatedCar != null)
                     {
-                        _mapper.Map(newCar, updatedCarDto);
-                        _memoryCache.Set(cacheKey, cachedCarPaginationDto);
+                      
+                        CarList.Remove(updatedCar);
+                        CarList.Add(newCar);
+                        _memoryCache.Set("CarList", CarList);
                     }
-
                 }
 
-
+                return new ApiOkResponse(updateCarDto);
             }
-
             catch (Exception ex)
             {
-
                 return new ApiResponse(400, ex.Message);
             }
-            return new ApiOkResponse(updateCarDto);
+           
         }
 
 
@@ -271,17 +251,15 @@ namespace APIPart.Controllers
 
             }
             await _carService.DeleteAsync(id);
-            // Update the cache
-            var cacheKey = GetCacheKey(new CarRequestDto());
-            if (_memoryCache.TryGetValue(cacheKey, out CarPaginationDto cachedCarPaginationDto))
+           
+            
+            if (_memoryCache.TryGetValue("CarList", out List<Car> CarList))
             {
-                // Remove the deleted car from the cached pagination data
-                var deletedCarDto = cachedCarPaginationDto.CarList.FirstOrDefault(c => c.Id == id);
-                if (deletedCarDto != null)
+                var deletedCar = CarList.FirstOrDefault(c => c.Id == id);
+                if (deletedCar != null)
                 {
-                    cachedCarPaginationDto.CarList.Remove(deletedCarDto);
-                    cachedCarPaginationDto.Count--;
-                    _memoryCache.Set(cacheKey, cachedCarPaginationDto);
+                    CarList.Remove(deletedCar);
+                    _memoryCache.Set("CarList", CarList);
                 }
             }
             return new ApiOkResponse("car with id" + id + "is deleted");

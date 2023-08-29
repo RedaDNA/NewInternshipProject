@@ -61,12 +61,9 @@ namespace infrastructure.Services
         {
 
             var rental = await _unitOfWork.Rentals.GetByIdAsync(id);
-            if (rental != null)
-            {
+         
                 return rental;
-            }
-
-            return null;
+          
         }
 
 

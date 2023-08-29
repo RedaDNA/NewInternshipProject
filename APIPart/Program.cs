@@ -20,6 +20,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Collections.Generic;
 using Core.Entities.identity;
+using Microsoft.AspNetCore.Hosting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -58,31 +59,20 @@ builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<CarRentalContext>(options =>
     options.UseSqlServer("Server=localhost\\SQLEXPRESS01;Database=master;Trusted_Connection=True;TrustServerCertificate=True;"));
-//builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true).AddEntityFrameworkStores< CarRentalContext>();
-//builder.Services.AddIdentity<IdentityUser, IdentityRole>()
-//  .AddEntityFrameworkStores<CarRentalContext>();
-/*
-builder.Services.AddIdentity<IdentityUser, IdentityRole>()
-    .AddEntityFrameworkStores<CarRentalContext>()
-    .AddDefaultTokenProviders();
-*/
-/*
-builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
-    .AddEntityFrameworkStores<CarRentalContext>();*/
-/*
-builder.Services.AddDefaultIdentity<IdentityUser<Guid>>(options => options.SignIn.RequireConfirmedAccount = true)
-        .AddEntityFrameworkStores<CarRentalContext>();*/
+
 builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
         .AddEntityFrameworkStores<CarRentalContext>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 builder.Services.AddDIServices(builder.Configuration);
+builder.Services.AddMemoryCache();
+
+builder.Services.AddScoped<ITableCacheService, TableCacheService>();
 
 builder.Services.AddScoped<ICarService, CarService>();
 builder.Services.AddScoped<IDriverService, DriverService>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IRentalService, RentalService>();
 builder.Services.AddScoped<IUserService, UserService>();
-
 builder.Services.AddSwaggerGen(c =>
 {
     // Other Swagger configuration settings...
@@ -118,9 +108,15 @@ builder.Services.AddSwaggerGen(c =>
 
 //builder.Services.AddTransient<IGenericRepository<Car>, GenericRepository<Car>>();
 //builder.Services.AddScoped<ICarRepository, CarRepository>();
-
+builder.Services.AddScoped<DataCachingService>();
 var app = builder.Build();
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var dataCachingService = services.GetRequiredService<DataCachingService>();
 
+    await dataCachingService.StartAsync(default); // Start the DataCachingService manually
+}
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -134,8 +130,20 @@ app.UseAuthorization();
 IConfiguration configuration = app.Configuration;
 IWebHostEnvironment environment = app.Environment;
 app.MapControllers();
-builder.Services.AddMemoryCache();
+
+
+
+/*
+// Cache the data at startup
+var serviceProvider = builder.Services.BuildServiceProvider();
+var tableCacheService = serviceProvider.GetService<ITableCacheService>();
+tableCacheService.CacheData();*/
 builder.Services.AddDistributedMemoryCache();
 
-
+/*
+app.Run(async (context) =>
+{
+    var cacheService = context.RequestServices.GetRequiredService<ITableCacheService>();
+    await cacheService.CacheData();
+});*/
 app.Run();

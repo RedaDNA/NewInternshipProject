@@ -36,7 +36,7 @@ namespace infrastructure.Services
         {
           
                     
-                _unitOfWork.Cars.DeleteAsync(id);
+             await   _unitOfWork.Cars.DeleteAsync(id);
                 var result = _unitOfWork.Save();
 
             return (result>0);    
@@ -55,12 +55,10 @@ namespace infrastructure.Services
         {
            
                 var car = await _unitOfWork.Cars.GetByIdAsync(id);
-                if (car != null)
-                {
+              
                     return car;
-                }
-
-            return null;
+       
+    
         }
 
      
@@ -70,7 +68,7 @@ namespace infrastructure.Services
             
                 var toUpdateCar = await _unitOfWork.Cars.GetByIdAsync(id);
               
-                    _unitOfWork.Cars.UpdateAsync(id,car);
+                 await   _unitOfWork.Cars.UpdateAsync(id,car);
 
                     var result = _unitOfWork.Save();
 

@@ -36,7 +36,7 @@ namespace infrastructure.Services
 
                 return false;
 
-            _unitOfWork.Users.DeleteAsync(user.Id);
+            await   _unitOfWork.Users.DeleteAsync(user.Id);
             var result = _unitOfWork.Save();
 
             return true;
@@ -69,10 +69,10 @@ namespace infrastructure.Services
         {
 
 
-            var toUpdateUser = await _unitOfWork.Users.GetByIdAsync(id);
+            var toUpdateUser =  _unitOfWork.Users.GetByIdAsync(id);
 
 
-            _unitOfWork.Users.UpdateAsync(id, customer);
+         await   _unitOfWork.Users.UpdateAsync(id, customer);
 
             var result = _unitOfWork.Save();
 
