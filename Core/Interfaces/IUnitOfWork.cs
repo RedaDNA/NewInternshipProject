@@ -12,7 +12,7 @@ namespace Core.Interfaces
        ICustomerRepository Customers { get; }
         IDriverRepository Drivers { get; }
         IRentalRepository Rentals { get; }
-        IUserRepository Users { get; }
+      
 
         int Save();
     }

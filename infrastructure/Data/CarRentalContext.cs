@@ -21,7 +21,7 @@ namespace Infrastructure.Data
         public DbSet<Driver> Drivers { get; set; }
         public DbSet<Rental> Rentals { get; set; }
         public DbSet<Customer> Customers { get; set; }
-        public DbSet<User> AppUsers { get; set; }
+        public DbSet<ApplicationUser> AppUsers { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

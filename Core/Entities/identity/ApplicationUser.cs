@@ -9,6 +9,7 @@ namespace Core.Entities.identity
 {
     public class ApplicationUser : IdentityUser<Guid>
     {
-        
+
+       
     }
 }

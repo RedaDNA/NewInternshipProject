@@ -18,13 +18,13 @@ namespace infrastructure.Data
 
         public IDriverRepository  Drivers{ get; }
         public IRentalRepository Rentals { get; }
-        public IUserRepository Users{ get; }
+     
 
 
         public UnitOfWork(CarRentalContext context,
                             ICarRepository carRepository,
-                         ICustomerRepository customerRepository   , IDriverRepository driverRepository,IRentalRepository rentalRepository,
-                         IUserRepository userRepository
+                         ICustomerRepository customerRepository   , IDriverRepository driverRepository,IRentalRepository rentalRepository
+                        
                             )
         {
             _context = context;
@@ -32,7 +32,7 @@ namespace infrastructure.Data
             Drivers = driverRepository;
             Customers = customerRepository;
             Rentals= rentalRepository;
-            Users = userRepository;
+           
         }
         public int Save()
         {
